@@ -1,0 +1,56 @@
+# Large model files
+empathiai-ai-service/emotional-chatbot-model/
+*.safetensors
+*.pt
+*.bin
+*.onnx
+
+# Dependencies
+node_modules/
+target/
+*.jar
+*.war
+*.ear
+
+# Environment files
+.env
+.env.local
+.env.production
+*.env
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Build outputs
+dist/
+build/
+out/
+
+# Database files
+*.db
+*.sqlite
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Chat logs with potential secrets
+q-dev-chat-*.md
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+
+# Temporary files
+*.tmp
+*.temp

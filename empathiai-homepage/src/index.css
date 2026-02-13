@@ -1,0 +1,29 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --sage-green: #9CAF88;
+  --warm-apricot: #F4B942;
+  --powder-blue: #A8DADC;
+  --dusty-lilac: #C8A8E9;
+}
+
+.bg-sage-green { background-color: var(--sage-green); }
+.bg-warm-apricot { background-color: var(--warm-apricot); }
+.bg-powder-blue { background-color: var(--powder-blue); }
+.bg-dusty-lilac { background-color: var(--dusty-lilac); }
+
+.text-sage-green { color: var(--sage-green); }
+.text-warm-apricot { color: var(--warm-apricot); }
+.text-powder-blue { color: var(--powder-blue); }
+.text-dusty-lilac { color: var(--dusty-lilac); }
+
+.from-sage-green { --tw-gradient-from: var(--sage-green); }
+.to-warm-apricot { --tw-gradient-to: var(--warm-apricot); }
+.from-warm-apricot { --tw-gradient-from: var(--warm-apricot); }
+.to-powder-blue { --tw-gradient-to: var(--powder-blue); }
+.from-powder-blue { --tw-gradient-from: var(--powder-blue); }
+.to-dusty-lilac { --tw-gradient-to: var(--dusty-lilac); }
+.from-dusty-lilac { --tw-gradient-from: var(--dusty-lilac); }
+.to-sage-green { --tw-gradient-to: var(--sage-green); }
