@@ -7,6 +7,7 @@ import InclusivityFocus from './components/InclusivityFocus'
 import Auth from './components/Auth'
 import Dashboard from './components/Dashboard'
 import LoginModal from './components/LoginModal'
+import AdminPanel from './components/admin/AdminPanel'
 
 function App() {
   const [currentPage, setCurrentPage] = useState('home')
@@ -17,8 +18,13 @@ function App() {
     // Check if user is logged in
     const savedUser = localStorage.getItem('user')
     if (savedUser) {
-      setUser(JSON.parse(savedUser))
-      setCurrentPage('dashboard')
+      const parsedUser = JSON.parse(savedUser)
+      setUser(parsedUser)
+      if (parsedUser.role === 'admin' || parsedUser.email === 'admin@empathai.com') {
+        setCurrentPage('admin')
+      } else {
+        setCurrentPage('dashboard')
+      }
     }
   }, [])
 
@@ -26,10 +32,15 @@ function App() {
     setShowLoginModal(true)
   }
 
+
   const handleLogin = (userData) => {
     setUser(userData)
     localStorage.setItem('user', JSON.stringify(userData))
-    setCurrentPage('dashboard')
+    if (userData.role === 'admin' || userData.email === 'admin@empathai.com') {
+      setCurrentPage('admin')
+    } else {
+      setCurrentPage('dashboard')
+    }
     setShowLoginModal(false)
   }
 
@@ -40,7 +51,11 @@ function App() {
   const navigateToDashboard = (userData) => {
     setUser(userData)
     localStorage.setItem('user', JSON.stringify(userData))
-    setCurrentPage('dashboard')
+    if (userData.role === 'admin' || userData.email === 'admin@empathai.com') {
+      setCurrentPage('admin')
+    } else {
+      setCurrentPage('dashboard')
+    }
   }
 
   const handleLogout = () => {
@@ -51,6 +66,10 @@ function App() {
 
   if (currentPage === 'auth') {
     return <Auth onBackToHome={navigateToHome} onLoginSuccess={navigateToDashboard} />
+  }
+
+  if (currentPage === 'admin' && user) {
+    return <AdminPanel onLogout={handleLogout} />
   }
 
   if (currentPage === 'dashboard' && user) {
@@ -66,10 +85,10 @@ function App() {
         <HowItWorks />
         <InclusivityFocus />
       </main>
-      <LoginModal 
-        isOpen={showLoginModal} 
-        onClose={() => setShowLoginModal(false)} 
-        onLogin={handleLogin} 
+      <LoginModal
+        isOpen={showLoginModal}
+        onClose={() => setShowLoginModal(false)}
+        onLogin={handleLogin}
       />
     </div>
   )

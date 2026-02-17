@@ -9,10 +9,13 @@ export default function LoginModal({ isOpen, onClose, onLogin }) {
   const handleSubmit = (e) => {
     e.preventDefault()
     if (email === 'test1@test.com' && password === 'test1234') {
-      onLogin({ firstName: 'Test', lastName: 'User', email })
+      onLogin({ firstName: 'Test', lastName: 'User', email, role: 'student' })
+      onClose()
+    } else if (email === 'admin@empathai.com' && password === 'admin1234') {
+      onLogin({ firstName: 'Admin', lastName: 'User', email, role: 'admin' })
       onClose()
     } else {
-      setError('Invalid credentials. Use test1@test.com / test1234')
+      setError('Invalid credentials.')
     }
   }
 
@@ -27,7 +30,7 @@ export default function LoginModal({ isOpen, onClose, onLogin }) {
         >
           <XMarkIcon className="w-6 h-6" />
         </button>
-        
+
         <div className="text-center mb-8">
           <h2 className="text-3xl font-bold text-gray-900 mb-2">Welcome Back</h2>
           <p className="text-gray-600">Sign in to continue your journey</p>
@@ -45,7 +48,7 @@ export default function LoginModal({ isOpen, onClose, onLogin }) {
               required
             />
           </div>
-          
+
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">Password</label>
             <input
@@ -70,10 +73,21 @@ export default function LoginModal({ isOpen, onClose, onLogin }) {
           </button>
         </form>
 
+
         <div className="mt-6 text-center text-sm text-gray-500">
-          <p>Test credentials:</p>
-          <p>Email: test1@test.com</p>
-          <p>Password: test1234</p>
+          <p className="font-semibold underline pb-1">Test credentials:</p>
+          <div className="grid grid-cols-2 gap-2 text-xs">
+            <div>
+              <p className="font-medium text-gray-700">Student:</p>
+              <p>test1@test.com</p>
+              <p>test1234</p>
+            </div>
+            <div>
+              <p className="font-medium text-purple-700">Admin:</p>
+              <p>admin@empathai.com</p>
+              <p>admin1234</p>
+            </div>
+          </div>
         </div>
       </div>
     </div>

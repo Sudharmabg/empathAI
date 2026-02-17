@@ -1,0 +1,563 @@
+import { useState } from 'react'
+import { PlusIcon, PencilIcon, TrashIcon, UserPlusIcon, ChevronDownIcon, ChevronRightIcon } from '@heroicons/react/24/outline'
+
+export default function UserManagement() {
+    const [activeTab, setActiveTab] = useState('student')
+    const [users, setUsers] = useState([
+        {
+            id: 1,
+            name: 'Aarav Sharma',
+            email: 'aarav.sharma@example.com',
+            role: 'student',
+            class: '4th Standard',
+            school: 'Delhi Public School',
+            parentName: 'Rajesh Sharma',
+            phoneNumber: '+91 98765 43210',
+            dateOfBirth: '2014-05-15',
+            address: 'Sector 12, Dwarka, New Delhi',
+            bloodGroup: 'O+',
+            emergencyContact: '+91 98765 43211'
+        },
+        {
+            id: 2,
+            name: 'Diya Patel',
+            email: 'diya.patel@example.com',
+            role: 'student',
+            class: '5th Standard',
+            school: 'Ryan International School',
+            parentName: 'Amit Patel',
+            phoneNumber: '+91 98123 45678',
+            dateOfBirth: '2013-08-22',
+            address: 'Andheri West, Mumbai',
+            bloodGroup: 'A+',
+            emergencyContact: '+91 98123 45679'
+        },
+        {
+            id: 3,
+            name: 'Priya Reddy',
+            email: 'priya.reddy@example.com',
+            role: 'school_admin',
+            school: 'Delhi Public School',
+            phoneNumber: '+91 99887 76655'
+        },
+        {
+            id: 4,
+            name: 'Dr. Arjun Menon',
+            email: 'arjun.menon@example.com',
+            role: 'psychologist',
+            license: 'PSY-MH-2019-12345',
+            phoneNumber: '+91 98234 56789'
+        },
+        {
+            id: 5,
+            name: 'Kavya Iyer',
+            email: 'kavya.iyer@example.com',
+            role: 'content_admin',
+            department: 'Curriculum',
+            phoneNumber: '+91 97654 32109'
+        },
+    ])
+    const [isModalOpen, setIsModalOpen] = useState(false)
+    const [editingUser, setEditingUser] = useState(null)
+    const [expandedRow, setExpandedRow] = useState(null)
+
+    // Modal form state
+    const [formData, setFormData] = useState({
+        name: '',
+        email: '',
+        role: 'student',
+        password: '',
+        class: '',
+        school: '',
+        parentName: '',
+        phoneNumber: '',
+        dateOfBirth: '',
+        address: '',
+        bloodGroup: '',
+        emergencyContact: '',
+        license: '',
+        department: '',
+    })
+
+    const generatePassword = () => {
+        const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*'
+        let pass = ''
+        for (let i = 0; i < 12; i++) {
+            pass += chars.charAt(Math.floor(Math.random() * chars.length))
+        }
+        setFormData(prev => ({ ...prev, password: pass }))
+    }
+
+    const handleOpenModal = (user = null) => {
+        if (user) {
+            setEditingUser(user)
+            setFormData({
+                ...user,
+                password: '', // Don't show existing password
+            })
+        } else {
+            setEditingUser(null)
+            setFormData({
+                name: '',
+                email: '',
+                role: activeTab,
+                password: '',
+                class: '',
+                school: '',
+                parentName: '',
+                phoneNumber: '',
+                dateOfBirth: '',
+                address: '',
+                bloodGroup: '',
+                emergencyContact: '',
+                license: '',
+                department: '',
+            })
+            generatePassword()
+        }
+        setIsModalOpen(true)
+    }
+
+    const handleSaveUser = () => {
+        if (editingUser) {
+            setUsers(users.map(u => u.id === editingUser.id ? { ...u, ...formData } : u))
+        } else {
+            const newUser = {
+                id: Date.now(),
+                ...formData,
+            }
+            setUsers([...users, newUser])
+        }
+        setIsModalOpen(false)
+    }
+
+    const handleDeleteUser = (id) => {
+        if (window.confirm('Are you sure you want to delete this user?')) {
+            setUsers(users.filter(u => u.id !== id))
+        }
+    }
+
+    const toggleRow = (userId) => {
+        setExpandedRow(expandedRow === userId ? null : userId)
+    }
+
+    const filteredUsers = users.filter(u => u.role === activeTab)
+
+    const roles = [
+        { id: 'student', label: 'Students' },
+        { id: 'school_admin', label: 'School Admin' },
+        { id: 'psychologist', label: 'Psychologists' },
+        { id: 'content_admin', label: 'Content Admins' },
+    ]
+
+    return (
+        <div>
+            {/* Tabs */}
+            <div className="border-b border-gray-200 mb-6">
+                <nav className="-mb-px flex space-x-8">
+                    {roles.map((role) => (
+                        <button
+                            key={role.id}
+                            onClick={() => {
+                                setActiveTab(role.id)
+                                setExpandedRow(null) // Reset expanded row when switching tabs
+                            }}
+                            className={`
+                whitespace-nowrap pb-4 px-1 border-b-2 font-medium text-sm transition-colors
+                ${activeTab === role.id
+                                    ? 'border-purple-600 text-purple-600'
+                                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}
+              `}
+                        >
+                            {role.label}
+                        </button>
+                    ))}
+                </nav>
+            </div>
+
+            {/* Action Bar */}
+            <div className="flex justify-between items-center mb-6">
+                <h3 className="text-lg font-medium text-gray-900">
+                    Manage {roles.find(r => r.id === activeTab)?.label}
+                </h3>
+                <button
+                    onClick={() => handleOpenModal()}
+                    className="flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500"
+                >
+                    <UserPlusIcon className="w-5 h-5 mr-2" />
+                    Add User
+                </button>
+            </div>
+
+            {/* User Table */}
+            <div className="flex flex-col">
+                <div className="-my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
+                    <div className="py-2 align-middle inline-block min-w-full sm:px-6 lg:px-8">
+                        <div className="shadow overflow-hidden border-b border-gray-200 sm:rounded-lg">
+                            <table className="min-w-full divide-y divide-gray-200">
+                                <thead className="bg-gray-50">
+                                    <tr>
+                                        {activeTab === 'student' && (
+                                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-8">
+                                                {/* Expand column */}
+                                            </th>
+                                        )}
+                                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            Name
+                                        </th>
+                                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            Email
+                                        </th>
+                                        {/* Dynamic Columns based on Role */}
+                                        {activeTab === 'student' && (
+                                            <>
+                                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Class</th>
+                                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">School</th>
+                                            </>
+                                        )}
+                                        {activeTab === 'school_admin' && (
+                                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">School</th>
+                                        )}
+                                        {activeTab === 'psychologist' && (
+                                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">License ID</th>
+                                        )}
+                                        {activeTab === 'content_admin' && (
+                                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Department</th>
+                                        )}
+                                        <th scope="col" className="relative px-6 py-3">
+                                            <span className="sr-only">Actions</span>
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody className="bg-white divide-y divide-gray-200">
+                                    {filteredUsers.length === 0 ? (
+                                        <tr>
+                                            <td colSpan="7" className="px-6 py-4 text-center text-sm text-gray-500">
+                                                No users found for this role.
+                                            </td>
+                                        </tr>
+                                    ) : (
+                                        filteredUsers.map((user) => (
+                                            <>
+                                                <tr key={user.id} className="hover:bg-gray-50">
+                                                    {activeTab === 'student' && (
+                                                        <td className="px-6 py-4 whitespace-nowrap">
+                                                            <button
+                                                                onClick={() => toggleRow(user.id)}
+                                                                className="text-gray-400 hover:text-gray-600"
+                                                            >
+                                                                {expandedRow === user.id ? (
+                                                                    <ChevronDownIcon className="w-5 h-5" />
+                                                                ) : (
+                                                                    <ChevronRightIcon className="w-5 h-5" />
+                                                                )}
+                                                            </button>
+                                                        </td>
+                                                    )}
+                                                    <td className="px-6 py-4 whitespace-nowrap">
+                                                        <div className="text-sm font-medium text-gray-900">{user.name}</div>
+                                                    </td>
+                                                    <td className="px-6 py-4 whitespace-nowrap">
+                                                        <div className="text-sm text-gray-500">{user.email}</div>
+                                                    </td>
+                                                    {/* Dynamic Render based on Role */}
+                                                    {activeTab === 'student' && (
+                                                        <>
+                                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{user.class}</td>
+                                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{user.school}</td>
+                                                        </>
+                                                    )}
+                                                    {activeTab === 'school_admin' && (
+                                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{user.school}</td>
+                                                    )}
+                                                    {activeTab === 'psychologist' && (
+                                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{user.license}</td>
+                                                    )}
+                                                    {activeTab === 'content_admin' && (
+                                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{user.department}</td>
+                                                    )}
+                                                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                                        <button
+                                                            onClick={() => handleOpenModal(user)}
+                                                            className="text-indigo-600 hover:text-indigo-900 mr-4"
+                                                        >
+                                                            <PencilIcon className="w-5 h-5" />
+                                                        </button>
+                                                        <button
+                                                            onClick={() => handleDeleteUser(user.id)}
+                                                            className="text-red-600 hover:text-red-900"
+                                                        >
+                                                            <TrashIcon className="w-5 h-5" />
+                                                        </button>
+                                                    </td>
+                                                </tr>
+                                                {/* Expanded Row for Students */}
+                                                {activeTab === 'student' && expandedRow === user.id && (
+                                                    <tr className="bg-purple-50">
+                                                        <td colSpan="6" className="px-6 py-4">
+                                                            <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
+                                                                <div>
+                                                                    <span className="font-semibold text-gray-700">Parent Name:</span>
+                                                                    <p className="text-gray-600">{user.parentName || 'N/A'}</p>
+                                                                </div>
+                                                                <div>
+                                                                    <span className="font-semibold text-gray-700">Phone Number:</span>
+                                                                    <p className="text-gray-600">{user.phoneNumber || 'N/A'}</p>
+                                                                </div>
+                                                                <div>
+                                                                    <span className="font-semibold text-gray-700">Date of Birth:</span>
+                                                                    <p className="text-gray-600">{user.dateOfBirth || 'N/A'}</p>
+                                                                </div>
+                                                                <div>
+                                                                    <span className="font-semibold text-gray-700">Blood Group:</span>
+                                                                    <p className="text-gray-600">{user.bloodGroup || 'N/A'}</p>
+                                                                </div>
+                                                                <div>
+                                                                    <span className="font-semibold text-gray-700">Emergency Contact:</span>
+                                                                    <p className="text-gray-600">{user.emergencyContact || 'N/A'}</p>
+                                                                </div>
+                                                                <div className="col-span-2 md:col-span-1">
+                                                                    <span className="font-semibold text-gray-700">Address:</span>
+                                                                    <p className="text-gray-600">{user.address || 'N/A'}</p>
+                                                                </div>
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                )}
+                                            </>
+                                        ))
+                                    )}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {/* Create/Edit Modal */}
+            {isModalOpen && (
+                <div className="fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+                    <div className="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+                        <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true" onClick={() => setIsModalOpen(false)}></div>
+                        <span className="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+                        <div className="inline-block align-bottom bg-white rounded-lg px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-2xl sm:w-full sm:p-6">
+                            <div>
+                                <h3 className="text-lg leading-6 font-medium text-gray-900" id="modal-title">
+                                    {editingUser ? 'Edit User' : 'Create New User'}
+                                </h3>
+                                <div className="mt-4 space-y-4 max-h-[70vh] overflow-y-auto pr-2">
+                                    {/* Basic Fields */}
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div className="col-span-2">
+                                            <label htmlFor="name" className="block text-sm font-medium text-gray-700">Full Name</label>
+                                            <input
+                                                type="text"
+                                                name="name"
+                                                id="name"
+                                                value={formData.name}
+                                                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                                                placeholder="e.g., Aarav Sharma"
+                                                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-purple-500 focus:border-purple-500 sm:text-sm"
+                                            />
+                                        </div>
+                                        <div className="col-span-2">
+                                            <label htmlFor="email" className="block text-sm font-medium text-gray-700">Email</label>
+                                            <input
+                                                type="email"
+                                                name="email"
+                                                id="email"
+                                                value={formData.email}
+                                                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                                                placeholder="e.g., aarav.sharma@example.com"
+                                                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-purple-500 focus:border-purple-500 sm:text-sm"
+                                            />
+                                        </div>
+                                    </div>
+
+                                    {/* Password Gen */}
+                                    <div>
+                                        <label htmlFor="password" className="block text-sm font-medium text-gray-700">Password</label>
+                                        <div className="mt-1 flex rounded-md shadow-sm">
+                                            <input
+                                                type="text"
+                                                name="password"
+                                                id="password"
+                                                readOnly={!editingUser}
+                                                value={formData.password}
+                                                onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                                                className="flex-1 min-w-0 block w-full px-3 py-2 rounded-none rounded-l-md focus:ring-purple-500 focus:border-purple-500 sm:text-sm border-gray-300"
+                                                placeholder={editingUser ? "(Unchanged)" : "Generate a password"}
+                                            />
+                                            <button
+                                                type="button"
+                                                onClick={generatePassword}
+                                                className="-ml-px relative inline-flex items-center space-x-2 px-4 py-2 border border-gray-300 text-sm font-medium rounded-r-md text-gray-700 bg-gray-50 hover:bg-gray-100 focus:outline-none focus:ring-1 focus:ring-purple-500 focus:border-purple-500"
+                                            >
+                                                Generate
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    {/* Role Specific Fields */}
+                                    {activeTab === 'student' && (
+                                        <>
+                                            <div className="grid grid-cols-2 gap-4">
+                                                <div>
+                                                    <label className="block text-sm font-medium text-gray-700">Class</label>
+                                                    <select
+                                                        value={formData.class}
+                                                        onChange={(e) => setFormData({ ...formData, class: e.target.value })}
+                                                        className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-purple-500 focus:border-purple-500 sm:text-sm"
+                                                    >
+                                                        <option value="">Select Class</option>
+                                                        {['1st', '2nd', '3rd', '4th', '5th', '6th', '7th', '8th', '9th', '10th', '11th', '12th'].map(cls => (
+                                                            <option key={cls} value={`${cls} Standard`}>{cls} Standard</option>
+                                                        ))}
+                                                    </select>
+                                                </div>
+                                                <div>
+                                                    <label className="block text-sm font-medium text-gray-700">School</label>
+                                                    <input
+                                                        type="text"
+                                                        value={formData.school}
+                                                        onChange={(e) => setFormData({ ...formData, school: e.target.value })}
+                                                        placeholder="e.g., Delhi Public School"
+                                                        className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-purple-500 focus:border-purple-500 sm:text-sm"
+                                                    />
+                                                </div>
+                                            </div>
+
+                                            <div className="grid grid-cols-2 gap-4">
+                                                <div>
+                                                    <label className="block text-sm font-medium text-gray-700">Parent/Guardian Name</label>
+                                                    <input
+                                                        type="text"
+                                                        value={formData.parentName}
+                                                        onChange={(e) => setFormData({ ...formData, parentName: e.target.value })}
+                                                        placeholder="e.g., Rajesh Sharma"
+                                                        className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-purple-500 focus:border-purple-500 sm:text-sm"
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <label className="block text-sm font-medium text-gray-700">Phone Number</label>
+                                                    <input
+                                                        type="tel"
+                                                        value={formData.phoneNumber}
+                                                        onChange={(e) => setFormData({ ...formData, phoneNumber: e.target.value })}
+                                                        placeholder="+91 98765 43210"
+                                                        className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-purple-500 focus:border-purple-500 sm:text-sm"
+                                                    />
+                                                </div>
+                                            </div>
+
+                                            <div className="grid grid-cols-2 gap-4">
+                                                <div>
+                                                    <label className="block text-sm font-medium text-gray-700">Date of Birth</label>
+                                                    <input
+                                                        type="date"
+                                                        value={formData.dateOfBirth}
+                                                        onChange={(e) => setFormData({ ...formData, dateOfBirth: e.target.value })}
+                                                        className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-purple-500 focus:border-purple-500 sm:text-sm"
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <label className="block text-sm font-medium text-gray-700">Blood Group</label>
+                                                    <select
+                                                        value={formData.bloodGroup}
+                                                        onChange={(e) => setFormData({ ...formData, bloodGroup: e.target.value })}
+                                                        className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-purple-500 focus:border-purple-500 sm:text-sm"
+                                                    >
+                                                        <option value="">Select Blood Group</option>
+                                                        {['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'].map(bg => (
+                                                            <option key={bg} value={bg}>{bg}</option>
+                                                        ))}
+                                                    </select>
+                                                </div>
+                                            </div>
+
+                                            <div>
+                                                <label className="block text-sm font-medium text-gray-700">Emergency Contact</label>
+                                                <input
+                                                    type="tel"
+                                                    value={formData.emergencyContact}
+                                                    onChange={(e) => setFormData({ ...formData, emergencyContact: e.target.value })}
+                                                    placeholder="+91 98765 43211"
+                                                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-purple-500 focus:border-purple-500 sm:text-sm"
+                                                />
+                                            </div>
+
+                                            <div>
+                                                <label className="block text-sm font-medium text-gray-700">Address</label>
+                                                <textarea
+                                                    value={formData.address}
+                                                    onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                                                    rows="2"
+                                                    placeholder="e.g., Sector 12, Dwarka, New Delhi"
+                                                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-purple-500 focus:border-purple-500 sm:text-sm"
+                                                />
+                                            </div>
+                                        </>
+                                    )}
+                                    {activeTab === 'school_admin' && (
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700">School Name</label>
+                                            <input
+                                                type="text"
+                                                value={formData.school}
+                                                onChange={(e) => setFormData({ ...formData, school: e.target.value })}
+                                                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-purple-500 focus:border-purple-500 sm:text-sm"
+                                            />
+                                        </div>
+                                    )}
+                                    {activeTab === 'psychologist' && (
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700">License ID</label>
+                                            <input
+                                                type="text"
+                                                value={formData.license}
+                                                onChange={(e) => setFormData({ ...formData, license: e.target.value })}
+                                                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-purple-500 focus:border-purple-500 sm:text-sm"
+                                            />
+                                        </div>
+                                    )}
+                                    {activeTab === 'content_admin' && (
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700">Department</label>
+                                            <select
+                                                value={formData.department}
+                                                onChange={(e) => setFormData({ ...formData, department: e.target.value })}
+                                                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-purple-500 focus:border-purple-500 sm:text-sm"
+                                            >
+                                                <option value="">Select Department</option>
+                                                <option value="Curriculum">Curriculum</option>
+                                                <option value="Assessment">Assessment</option>
+                                                <option value="Technical">Technical</option>
+                                            </select>
+                                        </div>
+                                    )}
+
+                                </div>
+                            </div>
+                            <div className="mt-5 sm:mt-6 sm:grid sm:grid-cols-2 sm:gap-3 sm:grid-flow-row-dense">
+                                <button
+                                    type="button"
+                                    onClick={handleSaveUser}
+                                    className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-purple-600 text-base font-medium text-white hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 sm:col-start-2 sm:text-sm"
+                                >
+                                    Save
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => setIsModalOpen(false)}
+                                    className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 sm:mt-0 sm:col-start-1 sm:text-sm"
+                                >
+                                    Cancel
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+        </div>
+    )
+}
