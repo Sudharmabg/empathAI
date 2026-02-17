@@ -26,12 +26,24 @@ function App() {
         setCurrentPage('dashboard')
       }
     }
-  }, [])
+
+    // Intersection Observer for scroll animations
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('active')
+        }
+      })
+    }, { threshold: 0.1 })
+
+    document.querySelectorAll('.reveal').forEach(el => observer.observe(el))
+
+    return () => observer.disconnect()
+  }, [currentPage])
 
   const navigateToAuth = () => {
     setShowLoginModal(true)
   }
-
 
   const handleLogin = (userData) => {
     setUser(userData)
@@ -77,13 +89,19 @@ function App() {
   }
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-gray-50/30">
       <Header />
       <main>
         <Hero onStartJourney={navigateToAuth} />
-        <WhyEmpathAI />
-        <HowItWorks />
-        <InclusivityFocus />
+        <div className="reveal">
+          <WhyEmpathAI />
+        </div>
+        <div className="reveal">
+          <HowItWorks />
+        </div>
+        <div className="reveal">
+          <InclusivityFocus />
+        </div>
       </main>
       <LoginModal
         isOpen={showLoginModal}

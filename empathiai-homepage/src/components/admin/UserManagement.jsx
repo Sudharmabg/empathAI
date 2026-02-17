@@ -1,8 +1,11 @@
 import { useState } from 'react'
-import { PlusIcon, PencilIcon, TrashIcon, UserPlusIcon, ChevronDownIcon, ChevronRightIcon } from '@heroicons/react/24/outline'
+import { PlusIcon, PencilIcon, TrashIcon, UserPlusIcon, ChevronDownIcon, ChevronRightIcon, MagnifyingGlassIcon, KeyIcon } from '@heroicons/react/24/outline'
 
 export default function UserManagement() {
     const [activeTab, setActiveTab] = useState('student')
+    const [searchTerm, setSearchTerm] = useState('')
+    const [resetPasswordUser, setResetPasswordUser] = useState(null)
+    const [newPassword, setNewPassword] = useState('')
     const [users, setUsers] = useState([
         {
             id: 1,
@@ -141,7 +144,46 @@ export default function UserManagement() {
         setExpandedRow(expandedRow === userId ? null : userId)
     }
 
-    const filteredUsers = users.filter(u => u.role === activeTab)
+    const handleResetPassword = (user) => {
+        setResetPasswordUser(user)
+        generatePasswordForReset()
+    }
+
+    const generatePasswordForReset = () => {
+        const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*'
+        let pass = ''
+        for (let i = 0; i < 12; i++) {
+            pass += chars.charAt(Math.floor(Math.random() * chars.length))
+        }
+        setNewPassword(pass)
+    }
+
+    const confirmResetPassword = () => {
+        if (resetPasswordUser && newPassword) {
+            setUsers(users.map(u =>
+                u.id === resetPasswordUser.id
+                    ? { ...u, password: newPassword }
+                    : u
+            ))
+            alert(`Password reset successfully for ${resetPasswordUser.name}!\nNew Password: ${newPassword}\n\nPlease save this password securely.`)
+            setResetPasswordUser(null)
+            setNewPassword('')
+        }
+    }
+
+    const filteredUsers = users
+        .filter(u => u.role === activeTab)
+        .filter(u => {
+            if (!searchTerm) return true
+            const search = searchTerm.toLowerCase()
+            return (
+                u.name.toLowerCase().includes(search) ||
+                u.email.toLowerCase().includes(search) ||
+                (u.school && u.school.toLowerCase().includes(search)) ||
+                (u.parentName && u.parentName.toLowerCase().includes(search)) ||
+                (u.phoneNumber && u.phoneNumber.includes(search))
+            )
+        })
 
     const roles = [
         { id: 'student', label: 'Students' },
@@ -175,18 +217,43 @@ export default function UserManagement() {
                 </nav>
             </div>
 
+
             {/* Action Bar */}
-            <div className="flex justify-between items-center mb-6">
-                <h3 className="text-lg font-medium text-gray-900">
-                    Manage {roles.find(r => r.id === activeTab)?.label}
-                </h3>
-                <button
-                    onClick={() => handleOpenModal()}
-                    className="flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500"
-                >
-                    <UserPlusIcon className="w-5 h-5 mr-2" />
-                    Add User
-                </button>
+            <div className="mb-6">
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
+                    <h3 className="text-lg font-medium text-gray-900">
+                        Manage {roles.find(r => r.id === activeTab)?.label}
+                    </h3>
+                    <button
+                        onClick={() => handleOpenModal()}
+                        className="flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500"
+                    >
+                        <UserPlusIcon className="w-5 h-5 mr-2" />
+                        Add User
+                    </button>
+                </div>
+
+                {/* Search Bar */}
+                <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <MagnifyingGlassIcon className="h-5 w-5 text-gray-400" />
+                    </div>
+                    <input
+                        type="text"
+                        placeholder="Search by name, email, school, parent name, or phone..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-purple-500 focus:border-purple-500 sm:text-sm"
+                    />
+                    {searchTerm && (
+                        <button
+                            onClick={() => setSearchTerm('')}
+                            className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600"
+                        >
+                            <span className="text-sm">Clear</span>
+                        </button>
+                    )}
+                </div>
             </div>
 
             {/* User Table */}
@@ -232,8 +299,17 @@ export default function UserManagement() {
                                 <tbody className="bg-white divide-y divide-gray-200">
                                     {filteredUsers.length === 0 ? (
                                         <tr>
-                                            <td colSpan="7" className="px-6 py-4 text-center text-sm text-gray-500">
-                                                No users found for this role.
+                                            <td colSpan="7" className="px-6 py-8 text-center">
+                                                <div className="text-gray-500">
+                                                    {searchTerm ? (
+                                                        <>
+                                                            <p className="text-sm font-medium">No results found for "{searchTerm}"</p>
+                                                            <p className="text-xs mt-1">Try adjusting your search terms</p>
+                                                        </>
+                                                    ) : (
+                                                        <p className="text-sm">No users found for this role.</p>
+                                                    )}
+                                                </div>
                                             </td>
                                         </tr>
                                     ) : (
@@ -279,13 +355,22 @@ export default function UserManagement() {
                                                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                                         <button
                                                             onClick={() => handleOpenModal(user)}
-                                                            className="text-indigo-600 hover:text-indigo-900 mr-4"
+                                                            className="text-indigo-600 hover:text-indigo-900 mr-3"
+                                                            title="Edit User"
                                                         >
                                                             <PencilIcon className="w-5 h-5" />
                                                         </button>
                                                         <button
+                                                            onClick={() => handleResetPassword(user)}
+                                                            className="text-purple-600 hover:text-purple-900 mr-3"
+                                                            title="Reset Password"
+                                                        >
+                                                            <KeyIcon className="w-5 h-5" />
+                                                        </button>
+                                                        <button
                                                             onClick={() => handleDeleteUser(user.id)}
                                                             className="text-red-600 hover:text-red-900"
+                                                            title="Delete User"
                                                         >
                                                             <TrashIcon className="w-5 h-5" />
                                                         </button>
@@ -549,6 +634,72 @@ export default function UserManagement() {
                                 <button
                                     type="button"
                                     onClick={() => setIsModalOpen(false)}
+                                    className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 sm:mt-0 sm:col-start-1 sm:text-sm"
+                                >
+                                    Cancel
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Reset Password Modal */}
+            {resetPasswordUser && (
+                <div className="fixed inset-0 z-50 overflow-y-auto" aria-labelledby="reset-modal-title" role="dialog" aria-modal="true">
+                    <div className="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+                        <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true" onClick={() => setResetPasswordUser(null)}></div>
+                        <span className="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+                        <div className="inline-block align-bottom bg-white rounded-lg px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full sm:p-6">
+                            <div>
+                                <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-purple-100">
+                                    <KeyIcon className="h-6 w-6 text-purple-600" />
+                                </div>
+                                <div className="mt-3 text-center sm:mt-5">
+                                    <h3 className="text-lg leading-6 font-medium text-gray-900" id="reset-modal-title">
+                                        Reset Password
+                                    </h3>
+                                    <div className="mt-2">
+                                        <p className="text-sm text-gray-500">
+                                            Reset password for <span className="font-semibold text-gray-900">{resetPasswordUser.name}</span>
+                                        </p>
+                                    </div>
+                                    <div className="mt-4">
+                                        <label className="block text-sm font-medium text-gray-700 text-left mb-2">
+                                            New Password
+                                        </label>
+                                        <div className="flex rounded-md shadow-sm">
+                                            <input
+                                                type="text"
+                                                readOnly
+                                                value={newPassword}
+                                                className="flex-1 min-w-0 block w-full px-3 py-2 rounded-none rounded-l-md focus:ring-purple-500 focus:border-purple-500 sm:text-sm border-gray-300 bg-gray-50"
+                                            />
+                                            <button
+                                                type="button"
+                                                onClick={generatePasswordForReset}
+                                                className="-ml-px relative inline-flex items-center space-x-2 px-4 py-2 border border-gray-300 text-sm font-medium rounded-r-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-1 focus:ring-purple-500 focus:border-purple-500"
+                                            >
+                                                Regenerate
+                                            </button>
+                                        </div>
+                                        <p className="mt-2 text-xs text-gray-500 text-left">
+                                            <strong>Important:</strong> Copy this password before confirming. It will be shown in an alert after reset.
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="mt-5 sm:mt-6 sm:grid sm:grid-cols-2 sm:gap-3 sm:grid-flow-row-dense">
+                                <button
+                                    type="button"
+                                    onClick={confirmResetPassword}
+                                    className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-purple-600 text-base font-medium text-white hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 sm:col-start-2 sm:text-sm"
+                                >
+                                    Confirm Reset
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => setResetPasswordUser(null)}
                                     className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 sm:mt-0 sm:col-start-1 sm:text-sm"
                                 >
                                     Cancel

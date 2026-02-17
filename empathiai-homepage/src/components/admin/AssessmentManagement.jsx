@@ -1,259 +1,534 @@
 import { useState } from 'react'
-import { PlusIcon, TrashIcon, PencilIcon, DocumentPlusIcon } from '@heroicons/react/24/outline'
+import { PlusIcon, TrashIcon, PencilIcon, ChevronDownIcon, ChevronRightIcon, FolderIcon, FolderPlusIcon } from '@heroicons/react/24/outline'
 
 export default function AssessmentManagement() {
-    const [assessments, setAssessments] = useState([
+    const [questions, setQuestions] = useState([
         {
             id: 1,
-            title: 'Emotional Well-being Term 1',
-            grade: '4th',
-            subject: 'SEL',
-            questions: [
-                { id: 1, text: 'How are you feeling today?', type: 'scale', min: 1, max: 5 },
-                { id: 2, text: 'Describe a moment you felt happy this week.', type: 'text' }
-            ]
+            text: 'How are you feeling today?',
+            options: ['Very Happy 😊', 'Happy 🙂', 'Okay 😐', 'Sad 😢'],
+            group: 'Daily Check-in'
         },
         {
             id: 2,
-            title: 'Social Skills Check-in',
-            grade: '5th',
-            subject: 'Social Studies',
-            questions: []
-        }
+            text: 'How well did you sleep last night?',
+            options: ['Very Well 😴', 'Good 😌', 'Not Great 😪', 'Poorly 😫'],
+            group: 'Daily Check-in'
+        },
+        {
+            id: 3,
+            text: 'How confident do you feel about your studies?',
+            options: ['Very Confident 💪', 'Confident 👍', 'Somewhat Confident 🤔', 'Not Confident 😟'],
+            group: 'Class 8th'
+        },
     ])
 
-    const [isModalOpen, setIsModalOpen] = useState(false)
-    const [currentAssessment, setCurrentAssessment] = useState(null)
+    const [groups, setGroups] = useState([
+        { id: 'Daily Check-in', name: 'Daily Check-in', color: 'purple', isDefault: true },
+        { id: 'Class 8th', name: 'Class 8th Standard', color: 'green', isDefault: true },
+        { id: 'Class 9th', name: 'Class 9th Standard', color: 'blue', isDefault: true },
+        { id: 'Class 10th', name: 'Class 10th Standard', color: 'indigo', isDefault: true },
+    ])
 
-    // Form State
-    const [formData, setFormData] = useState({
-        title: '',
-        grade: '',
-        subject: '',
-        questions: []
-    })
+    const [selectedGroup, setSelectedGroup] = useState(null)
+    const [expandedQuestion, setExpandedQuestion] = useState(null)
+    const [isQuestionModalOpen, setIsQuestionModalOpen] = useState(false)
+    const [isGroupModalOpen, setIsGroupModalOpen] = useState(false)
+    const [editingQuestion, setEditingQuestion] = useState(null)
+    const [searchTerm, setSearchTerm] = useState('')
 
-    // Question Form State
-    const [newQuestion, setNewQuestion] = useState({
+    const [questionFormData, setQuestionFormData] = useState({
         text: '',
-        type: 'text',
-        options: '' // Comma separated for UI simplicity
+        option1: '',
+        option2: '',
+        option3: '',
+        option4: '',
+        group: ''
     })
 
-    const openModal = (assessment = null) => {
-        if (assessment) {
-            setCurrentAssessment(assessment)
-            setFormData({ ...assessment })
+    const [groupFormData, setGroupFormData] = useState({
+        name: '',
+        color: 'purple'
+    })
+
+    const colorOptions = [
+        { value: 'purple', label: 'Purple', class: 'bg-purple-500' },
+        { value: 'blue', label: 'Blue', class: 'bg-blue-500' },
+        { value: 'green', label: 'Green', class: 'bg-green-500' },
+        { value: 'yellow', label: 'Yellow', class: 'bg-yellow-500' },
+        { value: 'red', label: 'Red', class: 'bg-red-500' },
+        { value: 'pink', label: 'Pink', class: 'bg-pink-500' },
+        { value: 'indigo', label: 'Indigo', class: 'bg-indigo-500' },
+        { value: 'orange', label: 'Orange', class: 'bg-orange-500' },
+    ]
+
+    const getColorClasses = (color) => {
+        const colorMap = {
+            purple: { bg: 'bg-purple-100', text: 'text-purple-800', border: 'border-purple-200', hover: 'hover:bg-purple-50' },
+            blue: { bg: 'bg-blue-100', text: 'text-blue-800', border: 'border-blue-200', hover: 'hover:bg-blue-50' },
+            green: { bg: 'bg-green-100', text: 'text-green-800', border: 'border-green-200', hover: 'hover:bg-green-50' },
+            yellow: { bg: 'bg-yellow-100', text: 'text-yellow-800', border: 'border-yellow-200', hover: 'hover:bg-yellow-50' },
+            red: { bg: 'bg-red-100', text: 'text-red-800', border: 'border-red-200', hover: 'hover:bg-red-50' },
+            pink: { bg: 'bg-pink-100', text: 'text-pink-800', border: 'border-pink-200', hover: 'hover:bg-pink-50' },
+            indigo: { bg: 'bg-indigo-100', text: 'text-indigo-800', border: 'border-indigo-200', hover: 'hover:bg-indigo-50' },
+            orange: { bg: 'bg-orange-100', text: 'text-orange-800', border: 'border-orange-200', hover: 'hover:bg-orange-50' },
+        }
+        return colorMap[color] || colorMap.purple
+    }
+
+    const handleOpenQuestionModal = (group, question = null) => {
+        if (question) {
+            setEditingQuestion(question)
+            setQuestionFormData({
+                text: question.text,
+                option1: question.options[0] || '',
+                option2: question.options[1] || '',
+                option3: question.options[2] || '',
+                option4: question.options[3] || '',
+                group: question.group
+            })
         } else {
-            setCurrentAssessment(null)
-            setFormData({ title: '', grade: '', subject: '', questions: [] })
+            setEditingQuestion(null)
+            setQuestionFormData({
+                text: '',
+                option1: '',
+                option2: '',
+                option3: '',
+                option4: '',
+                group: group
+            })
         }
-        setNewQuestion({ text: '', type: 'text', options: '' })
-        setIsModalOpen(true)
+        setIsQuestionModalOpen(true)
     }
 
-    const handleAddQuestion = () => {
-        if (!newQuestion.text) return
-        const question = {
-            id: Date.now(),
-            text: newQuestion.text,
-            type: newQuestion.type,
-            options: newQuestion.type === 'multiple_choice' ? newQuestion.options.split(',').map(s => s.trim()) : null
+    const handleOpenGroupModal = () => {
+        setGroupFormData({ name: '', color: 'purple' })
+        setIsGroupModalOpen(true)
+    }
+
+    const handleSaveQuestion = () => {
+        const options = [
+            questionFormData.option1,
+            questionFormData.option2,
+            questionFormData.option3,
+            questionFormData.option4
+        ].filter(opt => opt.trim())
+
+        if (!questionFormData.text || options.length < 2) {
+            alert('Please provide a question and at least 2 options')
+            return
         }
-        setFormData({ ...formData, questions: [...formData.questions, question] })
-        setNewQuestion({ text: '', type: 'text', options: '' })
-    }
 
-    const handleDeleteQuestion = (qId) => {
-        setFormData({ ...formData, questions: formData.questions.filter(q => q.id !== qId) })
-    }
-
-    const handleSaveAssessment = () => {
-        if (currentAssessment) {
-            setAssessments(assessments.map(a => a.id === currentAssessment.id ? { ...formData, id: a.id } : a))
+        if (editingQuestion) {
+            setQuestions(questions.map(q =>
+                q.id === editingQuestion.id
+                    ? { ...q, text: questionFormData.text, options, group: questionFormData.group }
+                    : q
+            ))
         } else {
-            setAssessments([...assessments, { ...formData, id: Date.now() }])
+            const newQuestion = {
+                id: Date.now(),
+                text: questionFormData.text,
+                options,
+                group: questionFormData.group
+            }
+            setQuestions([...questions, newQuestion])
         }
-        setIsModalOpen(false)
+        setIsQuestionModalOpen(false)
     }
 
-    const handleDeleteAssessment = (id) => {
-        if (window.confirm('Delete this assessment?')) {
-            setAssessments(assessments.filter(a => a.id !== id))
+    const handleSaveGroup = () => {
+        if (!groupFormData.name.trim()) {
+            alert('Please provide a group name')
+            return
+        }
+
+        const newGroup = {
+            id: groupFormData.name,
+            name: groupFormData.name,
+            color: groupFormData.color,
+            isDefault: false
+        }
+        setGroups([...groups, newGroup])
+        setIsGroupModalOpen(false)
+    }
+
+    const handleDeleteQuestion = (id) => {
+        if (window.confirm('Are you sure you want to delete this question?')) {
+            setQuestions(questions.filter(q => q.id !== id))
         }
     }
+
+    const handleDeleteGroup = (groupId) => {
+        const group = groups.find(g => g.id === groupId)
+        if (group.isDefault) {
+            alert('Cannot delete default groups')
+            return
+        }
+
+        const hasQuestions = questions.some(q => q.group === groupId)
+        if (hasQuestions) {
+            alert('Cannot delete group with existing questions. Please delete or reassign questions first.')
+            return
+        }
+
+        if (window.confirm(`Are you sure you want to delete the group "${group.name}"?`)) {
+            setGroups(groups.filter(g => g.id !== groupId))
+            if (selectedGroup === groupId) {
+                setSelectedGroup(null)
+            }
+        }
+    }
+
+    const toggleQuestion = (id) => {
+        setExpandedQuestion(expandedQuestion === id ? null : id)
+    }
+
+    const getGroupQuestions = (groupId) => {
+        return questions.filter(q => q.group === groupId)
+    }
+
+    const filteredQuestions = selectedGroup
+        ? questions.filter(q => q.group === selectedGroup)
+        : questions
+
+    const searchedQuestions = filteredQuestions.filter(q => {
+        if (!searchTerm) return true
+        return q.text.toLowerCase().includes(searchTerm.toLowerCase())
+    })
 
     return (
         <div>
-            <div className="flex justify-between items-center mb-6">
-                <h3 className="text-lg font-medium text-gray-900">Manage Assessments</h3>
-                <button
-                    onClick={() => openModal()}
-                    className="flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500"
-                >
-                    <DocumentPlusIcon className="w-5 h-5 mr-2" />
-                    Create Assessment
-                </button>
+            {/* Header */}
+            <div className="mb-6">
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                    <div>
+                        <h3 className="text-lg font-medium text-gray-900">Feelings Explorer</h3>
+                        <p className="text-sm text-gray-500 mt-1">
+                            {selectedGroup
+                                ? `Managing questions for: ${groups.find(g => g.id === selectedGroup)?.name}`
+                                : 'Select a group to view and manage questions'}
+                        </p>
+                    </div>
+                    <div className="flex gap-2">
+                        <button
+                            onClick={() => selectedGroup ? handleOpenQuestionModal(selectedGroup) : alert('Please select a group first')}
+                            className="flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500"
+                        >
+                            <PlusIcon className="w-5 h-5 mr-2" />
+                            Add Question
+                        </button>
+                        <button
+                            onClick={handleOpenGroupModal}
+                            className="flex items-center px-4 py-2 border border-purple-600 text-purple-600 rounded-md shadow-sm text-sm font-medium hover:bg-purple-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500"
+                        >
+                            <FolderPlusIcon className="w-5 h-5 mr-2" />
+                            Create Group
+                        </button>
+                    </div>
+                </div>
             </div>
 
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                {assessments.map((assessment) => (
-                    <div key={assessment.id} className="bg-white rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-shadow">
-                        <div className="p-6">
-                            <div className="flex justify-between items-start">
-                                <div>
-                                    <h4 className="text-lg font-semibold text-gray-900 mb-1">{assessment.title}</h4>
-                                    <p className="text-sm text-gray-500">{assessment.subject} • {assessment.grade} Grade</p>
+            {/* Groups Grid */}
+            <div className="mb-8">
+                <h4 className="text-sm font-semibold text-gray-700 uppercase mb-3">Question Groups</h4>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                    {groups.map((group) => {
+                        const questionCount = getGroupQuestions(group.id).length
+                        const colors = getColorClasses(group.color)
+                        const isSelected = selectedGroup === group.id
+
+                        return (
+                            <div
+                                key={group.id}
+                                onClick={() => setSelectedGroup(group.id)}
+                                className={`
+                  relative p-4 rounded-lg border-2 cursor-pointer transition-all
+                  ${isSelected
+                                        ? `${colors.border} ${colors.bg} shadow-md`
+                                        : `border-gray-200 bg-white hover:shadow-md ${colors.hover}`}
+                `}
+                            >
+                                <div className="flex items-start justify-between mb-2">
+                                    <div className="flex items-center">
+                                        <FolderIcon className={`w-5 h-5 mr-2 ${colors.text}`} />
+                                        <h5 className={`font-medium text-sm ${isSelected ? colors.text : 'text-gray-900'}`}>
+                                            {group.name}
+                                        </h5>
+                                    </div>
+                                    {!group.isDefault && (
+                                        <button
+                                            onClick={(e) => {
+                                                e.stopPropagation()
+                                                handleDeleteGroup(group.id)
+                                            }}
+                                            className="text-gray-400 hover:text-red-600"
+                                            title="Delete Group"
+                                        >
+                                            <TrashIcon className="w-4 h-4" />
+                                        </button>
+                                    )}
                                 </div>
-                                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
-                                    {assessment.questions.length} Qs
-                                </span>
+                                <div className="flex items-center justify-between">
+                                    <span className="text-xs text-gray-500">
+                                        {questionCount} {questionCount === 1 ? 'question' : 'questions'}
+                                    </span>
+                                    {isSelected && (
+                                        <span className={`text-xs font-semibold ${colors.text}`}>Selected</span>
+                                    )}
+                                </div>
                             </div>
-                            <div className="mt-4 pt-4 border-t border-gray-100 flex justify-end space-x-2">
+                        )
+                    })}
+                </div>
+            </div>
+
+            {/* Questions Section */}
+            {selectedGroup && (
+                <div>
+                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
+                        <h4 className="text-sm font-semibold text-gray-700 uppercase">
+                            Questions in {groups.find(g => g.id === selectedGroup)?.name}
+                        </h4>
+                        <button
+                            onClick={() => handleOpenQuestionModal(selectedGroup)}
+                            className="flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500"
+                        >
+                            <PlusIcon className="w-5 h-5 mr-2" />
+                            Add Question
+                        </button>
+                    </div>
+
+                    {/* Search Bar */}
+                    <div className="mb-4">
+                        <input
+                            type="text"
+                            placeholder="Search questions..."
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            className="block w-full px-4 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-purple-500 focus:border-purple-500 sm:text-sm"
+                        />
+                    </div>
+
+                    {/* Questions List */}
+                    <div className="space-y-3">
+                        {searchedQuestions.length === 0 ? (
+                            <div className="text-center py-12 bg-gray-50 rounded-lg">
+                                <p className="text-gray-500">
+                                    {searchTerm ? `No questions found for "${searchTerm}"` : 'No questions in this group yet.'}
+                                </p>
                                 <button
-                                    onClick={() => openModal(assessment)}
-                                    className="p-2 text-gray-400 hover:text-indigo-600 rounded-full hover:bg-indigo-50 transition-colors"
+                                    onClick={() => handleOpenQuestionModal(selectedGroup)}
+                                    className="mt-4 text-purple-600 hover:text-purple-700 text-sm font-medium"
                                 >
-                                    <PencilIcon className="w-5 h-5" />
+                                    Add your first question
+                                </button>
+                            </div>
+                        ) : (
+                            searchedQuestions.map((question, index) => (
+                                <div key={question.id} className="bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-md transition-shadow">
+                                    <div className="p-4">
+                                        <div className="flex items-start justify-between">
+                                            <div className="flex items-start flex-1">
+                                                <button
+                                                    onClick={() => toggleQuestion(question.id)}
+                                                    className="mr-3 mt-1 text-gray-400 hover:text-gray-600"
+                                                >
+                                                    {expandedQuestion === question.id ? (
+                                                        <ChevronDownIcon className="w-5 h-5" />
+                                                    ) : (
+                                                        <ChevronRightIcon className="w-5 h-5" />
+                                                    )}
+                                                </button>
+                                                <div className="flex-1">
+                                                    <div className="flex items-center gap-2 mb-1">
+                                                        <span className="text-xs font-semibold text-gray-500">Q{index + 1}</span>
+                                                    </div>
+                                                    <p className="text-sm font-medium text-gray-900">{question.text}</p>
+                                                </div>
+                                            </div>
+                                            <div className="flex items-center gap-2 ml-4">
+                                                <button
+                                                    onClick={() => handleOpenQuestionModal(selectedGroup, question)}
+                                                    className="p-2 text-indigo-600 hover:text-indigo-900 hover:bg-indigo-50 rounded-md"
+                                                    title="Edit Question"
+                                                >
+                                                    <PencilIcon className="w-4 h-4" />
+                                                </button>
+                                                <button
+                                                    onClick={() => handleDeleteQuestion(question.id)}
+                                                    className="p-2 text-red-600 hover:text-red-900 hover:bg-red-50 rounded-md"
+                                                    title="Delete Question"
+                                                >
+                                                    <TrashIcon className="w-4 h-4" />
+                                                </button>
+                                            </div>
+                                        </div>
+
+                                        {/* Expanded Options */}
+                                        {expandedQuestion === question.id && (
+                                            <div className="mt-4 pl-8 pt-3 border-t border-gray-100">
+                                                <p className="text-xs font-semibold text-gray-500 uppercase mb-2">Answer Options:</p>
+                                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                                    {question.options.map((option, idx) => (
+                                                        <div key={idx} className="flex items-center p-2 bg-purple-50 rounded-md">
+                                                            <span className="flex-shrink-0 w-6 h-6 flex items-center justify-center bg-purple-200 text-purple-700 rounded-full text-xs font-bold mr-2">
+                                                                {idx + 1}
+                                                            </span>
+                                                            <span className="text-sm text-gray-700">{option}</span>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            ))
+                        )}
+                    </div>
+                </div>
+            )}
+
+            {/* Add/Edit Question Modal */}
+            {isQuestionModalOpen && (
+                <div className="fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+                    <div className="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+                        <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" onClick={() => setIsQuestionModalOpen(false)}></div>
+                        <span className="hidden sm:inline-block sm:align-middle sm:h-screen">&#8203;</span>
+                        <div className="inline-block align-bottom bg-white rounded-lg px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full sm:p-6">
+                            <div>
+                                <h3 className="text-lg leading-6 font-medium text-gray-900 mb-4">
+                                    {editingQuestion ? 'Edit Question' : 'Add New Question'}
+                                </h3>
+
+                                <div className="space-y-4">
+                                    {/* Question Text */}
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                                            Question Text
+                                        </label>
+                                        <textarea
+                                            value={questionFormData.text}
+                                            onChange={(e) => setQuestionFormData({ ...questionFormData, text: e.target.value })}
+                                            rows="2"
+                                            placeholder="e.g., How are you feeling today?"
+                                            className="block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-purple-500 focus:border-purple-500 sm:text-sm"
+                                        />
+                                    </div>
+
+                                    {/* Answer Options */}
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                                            Answer Options (4 options)
+                                        </label>
+                                        <div className="space-y-2">
+                                            {[1, 2, 3, 4].map((num) => (
+                                                <div key={num} className="flex items-center">
+                                                    <span className="flex-shrink-0 w-6 h-6 flex items-center justify-center bg-purple-100 text-purple-700 rounded-full text-xs font-bold mr-2">
+                                                        {num}
+                                                    </span>
+                                                    <input
+                                                        type="text"
+                                                        value={questionFormData[`option${num}`]}
+                                                        onChange={(e) => setQuestionFormData({ ...questionFormData, [`option${num}`]: e.target.value })}
+                                                        placeholder={`Option ${num} (e.g., Very Happy 😊)`}
+                                                        className="flex-1 border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-purple-500 focus:border-purple-500 sm:text-sm"
+                                                    />
+                                                </div>
+                                            ))}
+                                        </div>
+                                        <p className="mt-2 text-xs text-gray-500">
+                                            💡 Tip: You can use emojis to make options more engaging!
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="mt-5 sm:mt-6 sm:grid sm:grid-cols-2 sm:gap-3 sm:grid-flow-row-dense">
+                                <button
+                                    type="button"
+                                    onClick={handleSaveQuestion}
+                                    className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-purple-600 text-base font-medium text-white hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 sm:col-start-2 sm:text-sm"
+                                >
+                                    {editingQuestion ? 'Update' : 'Add'} Question
                                 </button>
                                 <button
-                                    onClick={() => handleDeleteAssessment(assessment.id)}
-                                    className="p-2 text-gray-400 hover:text-red-600 rounded-full hover:bg-red-50 transition-colors"
+                                    type="button"
+                                    onClick={() => setIsQuestionModalOpen(false)}
+                                    className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 sm:mt-0 sm:col-start-1 sm:text-sm"
                                 >
-                                    <TrashIcon className="w-5 h-5" />
+                                    Cancel
                                 </button>
                             </div>
                         </div>
                     </div>
-                ))}
-            </div>
+                </div>
+            )}
 
-            {/* Modal */}
-            {isModalOpen && (
-                <div className="fixed inset-0 z-50 overflow-y-auto">
+            {/* Create Group Modal */}
+            {isGroupModalOpen && (
+                <div className="fixed inset-0 z-50 overflow-y-auto" aria-labelledby="group-modal-title" role="dialog" aria-modal="true">
                     <div className="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-                        <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" onClick={() => setIsModalOpen(false)}></div>
+                        <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" onClick={() => setIsGroupModalOpen(false)}></div>
                         <span className="hidden sm:inline-block sm:align-middle sm:h-screen">&#8203;</span>
-                        <div className="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-2xl sm:w-full">
-                            <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
-                                <h3 className="text-lg font-medium text-gray-900 mb-4">{currentAssessment ? 'Edit Assessment' : 'New Assessment'}</h3>
+                        <div className="inline-block align-bottom bg-white rounded-lg px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-md sm:w-full sm:p-6">
+                            <div>
+                                <h3 className="text-lg leading-6 font-medium text-gray-900 mb-4" id="group-modal-title">
+                                    Create New Group
+                                </h3>
 
-                                {/* Meta Data */}
-                                <div className="grid grid-cols-2 gap-4 mb-6">
-                                    <div className="col-span-2">
-                                        <label className="block text-sm font-medium text-gray-700">Title</label>
+                                <div className="space-y-4">
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                                            Group Name
+                                        </label>
                                         <input
                                             type="text"
-                                            value={formData.title}
-                                            onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                                            className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:ring-purple-500 focus:border-purple-500 sm:text-sm"
+                                            value={groupFormData.name}
+                                            onChange={(e) => setGroupFormData({ ...groupFormData, name: e.target.value })}
+                                            placeholder="e.g., Weekly Reflection"
+                                            className="block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-purple-500 focus:border-purple-500 sm:text-sm"
                                         />
                                     </div>
+
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700">Grade Level</label>
-                                        <select
-                                            value={formData.grade}
-                                            onChange={(e) => setFormData({ ...formData, grade: e.target.value })}
-                                            className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:ring-purple-500 focus:border-purple-500 sm:text-sm"
-                                        >
-                                            <option value="">Select Grade</option>
-                                            {[...Array(12).keys()].map(i => <option key={i} value={`${i + 1}th`}>{i + 1}th Grade</option>)}
-                                        </select>
-                                    </div>
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700">Subject</label>
-                                        <input
-                                            type="text"
-                                            value={formData.subject}
-                                            onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
-                                            className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:ring-purple-500 focus:border-purple-500 sm:text-sm"
-                                        />
-                                    </div>
-                                </div>
-
-                                {/* Question Builder */}
-                                <div className="border-t border-gray-200 pt-4">
-                                    <h4 className="text-sm font-medium text-gray-900 mb-3">Questions</h4>
-
-                                    {/* List of existing questions */}
-                                    <div className="space-y-3 mb-4 max-h-48 overflow-y-auto">
-                                        {formData.questions.map((q, idx) => (
-                                            <div key={q.id} className="flex justify-between items-start bg-gray-50 p-3 rounded-md">
-                                                <div>
-                                                    <p className="text-sm font-medium text-gray-900">
-                                                        <span className="text-gray-500 mr-2">#{idx + 1}</span>
-                                                        {q.text}
-                                                    </p>
-                                                    <p className="text-xs text-gray-500 mt-1 capitalize">Type: {q.type.replace('_', ' ')}</p>
-                                                    {q.options && (
-                                                        <p className="text-xs text-gray-400">Options: {q.options.join(', ')}</p>
-                                                    )}
-                                                </div>
-                                                <button onClick={() => handleDeleteQuestion(q.id)} className="text-red-500 hover:text-red-700">
-                                                    <TrashIcon className="w-4 h-4" />
-                                                </button>
-                                            </div>
-                                        ))}
-                                        {formData.questions.length === 0 && (
-                                            <p className="text-sm text-gray-500 italic text-center py-2">No questions added yet.</p>
-                                        )}
-                                    </div>
-
-                                    {/* Add New Question */}
-                                    <div className="bg-purple-50 p-4 rounded-md">
-                                        <p className="text-xs font-semibold text-purple-700 uppercase mb-2">Add New Question</p>
-                                        <div className="grid grid-cols-1 gap-3">
-                                            <input
-                                                type="text"
-                                                placeholder="Question text"
-                                                value={newQuestion.text}
-                                                onChange={(e) => setNewQuestion({ ...newQuestion, text: e.target.value })}
-                                                className="block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 sm:text-sm focus:ring-purple-500 focus:border-purple-500"
-                                            />
-                                            <div className="grid grid-cols-2 gap-3">
-                                                <select
-                                                    value={newQuestion.type}
-                                                    onChange={(e) => setNewQuestion({ ...newQuestion, type: e.target.value })}
-                                                    className="block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 sm:text-sm focus:ring-purple-500 focus:border-purple-500"
+                                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                                            Color Theme
+                                        </label>
+                                        <div className="grid grid-cols-4 gap-2">
+                                            {colorOptions.map((color) => (
+                                                <button
+                                                    key={color.value}
+                                                    type="button"
+                                                    onClick={() => setGroupFormData({ ...groupFormData, color: color.value })}
+                                                    className={`
+                            p-3 rounded-md border-2 transition-all
+                            ${groupFormData.color === color.value
+                                                            ? 'border-gray-900 ring-2 ring-gray-900'
+                                                            : 'border-gray-200 hover:border-gray-400'}
+                          `}
                                                 >
-                                                    <option value="text">Text Answer</option>
-                                                    <option value="multiple_choice">Multiple Choice</option>
-                                                    <option value="scale">Rating Scale (1-5)</option>
-                                                </select>
-                                                {newQuestion.type === 'multiple_choice' && (
-                                                    <input
-                                                        type="text"
-                                                        placeholder="Options (comma separated)"
-                                                        value={newQuestion.options}
-                                                        onChange={(e) => setNewQuestion({ ...newQuestion, options: e.target.value })}
-                                                        className="block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 sm:text-sm focus:ring-purple-500 focus:border-purple-500"
-                                                    />
-                                                )}
-                                            </div>
-                                            <button
-                                                type="button"
-                                                onClick={handleAddQuestion}
-                                                disabled={!newQuestion.text}
-                                                className="w-full inline-flex justify-center items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-purple-700 bg-purple-100 hover:bg-purple-200 disabled:opacity-50"
-                                            >
-                                                <PlusIcon className="w-4 h-4 mr-2" /> Add Question
-                                            </button>
+                                                    <div className={`w-full h-6 rounded ${color.class}`}></div>
+                                                    <p className="text-xs mt-1 text-center text-gray-600">{color.label}</p>
+                                                </button>
+                                            ))}
                                         </div>
                                     </div>
                                 </div>
                             </div>
-                            <div className="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+
+                            <div className="mt-5 sm:mt-6 sm:grid sm:grid-cols-2 sm:gap-3 sm:grid-flow-row-dense">
                                 <button
                                     type="button"
-                                    onClick={handleSaveAssessment}
-                                    className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-purple-600 text-base font-medium text-white hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 sm:ml-3 sm:w-auto sm:text-sm"
+                                    onClick={handleSaveGroup}
+                                    className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-purple-600 text-base font-medium text-white hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 sm:col-start-2 sm:text-sm"
                                 >
-                                    Save Assessment
+                                    Create Group
                                 </button>
                                 <button
                                     type="button"
-                                    onClick={() => setIsModalOpen(false)}
-                                    className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm"
+                                    onClick={() => setIsGroupModalOpen(false)}
+                                    className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 sm:mt-0 sm:col-start-1 sm:text-sm"
                                 >
                                     Cancel
                                 </button>

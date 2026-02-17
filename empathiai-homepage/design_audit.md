@@ -18,10 +18,10 @@ Defined in `tailwind.config.js` and `index.css`:
 | **warm-apricot** | `#F4B942` | Highlights, warmth |
 | **powder-blue** | `#A8DADC` | Soft backgrounds, trust |
 | **dusty-lilac** | `#C8A8E9` | Secondary accents |
-| **primary** | `#2D1B69` | Main brand color (Deep Purple) |
-| **dark-navy** | `#2D1B69` | Text, strong contrast elements |
-| **navy-purple** | `#3B2F5C` | Variations of primary |
-| **light-purple** | `#6366F1` | Buttons, active states, gradients |
+| **primary** | `#7c3aed` | Main brand color (Vibrant Purple) |
+| **dark-navy** | `#4c1d95` | Text, strong contrast elements |
+| **navy-purple** | `#6d28d9` | Variations of primary |
+| **light-purple** | `#a78bfa` | Buttons, active states, gradients |
 
 *Note: Standard Tailwind colors (Gray, Purple, White) are also heavily used.*
 

@@ -1,23 +1,26 @@
 import { useState } from 'react'
-import { 
-  UsersIcon, 
-  ClipboardDocumentCheckIcon, 
-  ChartBarIcon, 
+import {
+  UsersIcon,
+  ClipboardDocumentCheckIcon,
+  ChartBarIcon,
   ArrowLeftOnRectangleIcon,
   Bars3Icon,
-  XMarkIcon
+  XMarkIcon,
+  AcademicCapIcon
 } from '@heroicons/react/24/outline'
 import UserManagement from './UserManagement'
 import AssessmentManagement from './AssessmentManagement'
+import CurriculumManagement from './CurriculumManagement'
 
 export default function AdminPanel({ onLogout }) {
   const [activeTab, setActiveTab] = useState('users')
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
 
   const menuItems = [
-    { id: 'users', label: 'User Management', icon: UsersIcon },
-    { id: 'assessments', label: 'Assessment Management', icon: ClipboardDocumentCheckIcon },
-    { id: 'analytics', label: 'Analytics Overview', icon: ChartBarIcon }, // Placeholder
+    { id: 'users', label: 'Users', icon: UsersIcon },
+    { id: 'assessments', label: 'Feelings Explorer', icon: ClipboardDocumentCheckIcon },
+    { id: 'curriculum', label: 'Curriculum', icon: AcademicCapIcon },
+    { id: 'analytics', label: 'Analytics', icon: ChartBarIcon },
   ]
 
   const renderContent = () => {
@@ -26,6 +29,8 @@ export default function AdminPanel({ onLogout }) {
         return <UserManagement />
       case 'assessments':
         return <AssessmentManagement />
+      case 'curriculum':
+        return <CurriculumManagement />
       default:
         return (
           <div className="p-8 text-center text-gray-500">
@@ -40,7 +45,7 @@ export default function AdminPanel({ onLogout }) {
     <div className="min-h-screen bg-gray-50 flex">
       {/* Mobile Sidebar Overlay */}
       {isSidebarOpen && (
-        <div 
+        <div
           className="fixed inset-0 bg-black/50 z-40 lg:hidden"
           onClick={() => setIsSidebarOpen(false)}
         />
@@ -57,7 +62,7 @@ export default function AdminPanel({ onLogout }) {
             <h1 className="text-xl font-bold bg-gradient-to-r from-purple-600 to-purple-800 bg-clip-text text-transparent">
               EmpathAI Admin
             </h1>
-            <button 
+            <button
               onClick={() => setIsSidebarOpen(false)}
               className="lg:hidden text-gray-500 hover:text-gray-700"
             >
@@ -76,12 +81,12 @@ export default function AdminPanel({ onLogout }) {
                 }}
                 className={`
                   w-full flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors
-                  ${activeTab === item.id 
-                    ? 'bg-purple-50 text-purple-700' 
+                  ${activeTab === item.id
+                    ? 'bg-primary/10 text-primary'
                     : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'}
                 `}
               >
-                <item.icon className={`w-5 h-5 mr-3 ${activeTab === item.id ? 'text-purple-600' : 'text-gray-400'}`} />
+                <item.icon className={`w-5 h-5 mr-3 ${activeTab === item.id ? 'text-primary' : 'text-gray-400'}`} />
                 {item.label}
               </button>
             ))}
@@ -123,7 +128,12 @@ export default function AdminPanel({ onLogout }) {
                 {menuItems.find(i => i.id === activeTab)?.label}
               </h2>
               <p className="mt-1 text-sm text-gray-500">
-                Manage your organization's {activeTab === 'users' ? 'users and roles' : 'assessments and content'}.
+                Manage your organization's {
+                  activeTab === 'users' ? 'users and roles' :
+                    activeTab === 'assessments' ? 'emotional check-ins and activities' :
+                      activeTab === 'curriculum' ? 'syllabi and learning content' :
+                        'data and insights'
+                }.
               </p>
             </div>
             {renderContent()}
