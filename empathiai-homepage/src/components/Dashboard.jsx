@@ -30,6 +30,10 @@ export default function Dashboard({ user, onLogout }) {
   const [activeTab, setActiveTab] = useState('overview')
   const [activeHeaderModal, setActiveHeaderModal] = useState(null)
   const [chatMessage, setChatMessage] = useState('')
+  const [showDailyCheckin, setShowDailyCheckin] = useState(true)
+  const [selectedSleep, setSelectedSleep] = useState(null)
+  const [selectedMood, setSelectedMood] = useState(null)
+  const [showBreathing, setShowBreathing] = useState(false)
 
   const navigateToChat = (message) => {
     setChatMessage(message)
@@ -54,7 +58,7 @@ export default function Dashboard({ user, onLogout }) {
             <div className="w-9 h-9 bg-purple-200 rounded-xl flex items-center justify-center shadow-lg shadow-purple-200/50 group-hover:rotate-6 transition-transform">
               <span className="text-dark-navy font-black text-lg">E</span>
             </div>
-            <h1 className="text-xl font-black text-purple-200 tracking-tight">
+            <h1 className="text-xl font-black text-black tracking-tight">
               EmpathAI
             </h1>
           </div>
@@ -103,11 +107,11 @@ export default function Dashboard({ user, onLogout }) {
             {/* User Avatar */}
             <div className="flex items-center gap-3 pl-4 border-l border-gray-100">
               <div className="text-right hidden sm:block">
-                <p className="text-xs font-black text-purple-200">{user.firstName}</p>
+                <p className="text-xs font-black text-black">{user.firstName}</p>
                 <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest pl-1">Student</p>
               </div>
-              <div className="w-10 h-10 bg-gradient-to-br from-primary to-light-purple rounded-2xl flex items-center justify-center shadow-md shadow-primary/20">
-                <span className="text-white font-black text-base">{user.firstName?.charAt(0) || 'U'}</span>
+              <div className="w-10 h-10 bg-purple-200 rounded-2xl flex items-center justify-center shadow-md shadow-purple-200/20">
+                <span className="text-black font-black text-base">{user.firstName?.charAt(0) || 'U'}</span>
               </div>
             </div>
           </div>
@@ -177,6 +181,119 @@ export default function Dashboard({ user, onLogout }) {
             {activeHeaderModal === 'calendar' && <CalendarModal />}
             {activeHeaderModal === 'rewards' && <RewardsModal />}
             {activeHeaderModal === 'notifications' && <NotificationsModal />}
+          </div>
+        </div>
+      )}
+      {/* Daily Check-in Modal */}
+      {showDailyCheckin && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-md z-[100] flex items-center justify-center p-4">
+          <div className="bg-white rounded-[2.5rem] border-2 border-purple-200 shadow-2xl p-10 w-full max-w-lg relative animate-in fade-in zoom-in duration-300">
+            <div className="text-center mb-8">
+              <div className="w-20 h-20 bg-purple-100 rounded-3xl flex items-center justify-center mx-auto mb-4 animate-float">
+                <span className="text-4xl text-black">👋</span>
+              </div>
+              <h2 className="text-3xl font-black text-dark-navy mb-2 italic">Morning, {user.firstName}!</h2>
+              <p className="text-gray-500 font-medium">Let's start your day with a quick check-in.</p>
+            </div>
+
+            <div className="space-y-8">
+              {/* Sleep Question */}
+              <div>
+                <label className="block text-lg font-black text-dark-navy mb-4 text-center">
+                  How many hours did you sleep? 😴
+                </label>
+                <div className="flex flex-wrap justify-center gap-3">
+                  {['4-5', '6-7', '8-9', '10+'].map((hours) => (
+                    <button
+                      key={hours}
+                      onClick={() => setSelectedSleep(hours)}
+                      className={`px-4 py-3 rounded-2xl border-2 transition-all font-bold text-sm ${selectedSleep === hours
+                        ? 'bg-green-50 border-green-500 text-green-700 shadow-md shadow-green-100 ring-2 ring-green-100'
+                        : 'border-purple-100 text-dark-navy hover:border-green-500 hover:bg-green-50'
+                        }`}
+                    >
+                      {hours} Hours
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Mood Question */}
+              <div>
+                <label className="block text-lg font-black text-dark-navy mb-4 text-center">
+                  How are you feeling today? ✨
+                </label>
+                <div className="flex justify-center gap-6">
+                  {[
+                    { emoji: '😊', label: 'Happy' },
+                    { emoji: '😐', label: 'Neutral' },
+                    { emoji: '😔', label: 'Sad' },
+                    { emoji: '😫', label: 'Tired' }
+                  ].map((mood) => (
+                    <button
+                      key={mood.label}
+                      onClick={() => {
+                        setSelectedMood(mood.label)
+                        if (mood.label === 'Tired') {
+                          setShowBreathing(true)
+                        }
+                      }}
+                      className="group flex flex-col items-center gap-2"
+                    >
+                      <span className={`text-5xl transition-all duration-300 group-hover:scale-125 ${selectedMood === mood.label ? 'scale-125 drop-shadow-md' : 'opacity-80 group-hover:opacity-100'
+                        }`}>
+                        {mood.emoji}
+                      </span>
+                      <span className={`text-[10px] font-bold uppercase tracking-widest ${selectedMood === mood.label ? 'text-green-600' : 'text-gray-400'
+                        }`}>{mood.label}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <button
+              onClick={() => setShowDailyCheckin(false)}
+              className="w-full mt-10 bg-black text-white font-black py-4 rounded-2xl hover:bg-gray-800 transition-all shadow-xl shadow-black/10 text-lg"
+            >
+              Start My Learning Journey!
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Box Breathing Intervention */}
+      {showBreathing && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-xl z-[200] flex items-center justify-center p-4">
+          <div className="bg-white rounded-[3rem] border-4 border-purple-200 p-12 w-full max-w-xl text-center relative overflow-hidden shadow-2xl">
+            <div className="absolute inset-0 bg-gradient-to-b from-purple-50/50 to-transparent"></div>
+
+            <div className="relative z-10">
+              <h2 className="text-3xl font-black text-dark-navy mb-2 tracking-tight">Box Breathing 🧘‍♂️</h2>
+              <p className="text-gray-500 font-medium mb-10">Let's reset your energy with 30 seconds of breathing.</p>
+
+              {/* Breathing Animation */}
+              <div className="flex justify-center mb-10">
+                <div className="w-48 h-48 border-4 border-green-200 rounded-3xl relative flex items-center justify-center">
+                  <div className="absolute inset-0 border-4 border-green-500 rounded-3xl animate-breathing-box"></div>
+                  <div className="text-xl font-black text-green-600 animate-pulse">
+                    Breathe...
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <div className="text-4xl font-black text-dark-navy">30s</div>
+                <p className="text-sm font-bold text-gray-400 uppercase tracking-widest">Intervention in progress</p>
+              </div>
+
+              <button
+                onClick={() => setShowBreathing(false)}
+                className="mt-10 text-gray-400 font-bold hover:text-dark-navy transition-colors underline"
+              >
+                Skip intervention
+              </button>
+            </div>
           </div>
         </div>
       )}
@@ -397,14 +514,14 @@ function Overview({ user, setActiveTab }) {
                   </div>
                 </div>
                 <div className="text-right">
-                  <p className="text-xl font-black text-purple-600">{subject.progress}%</p>
+                  <p className="text-xl font-black text-green-600">{subject.progress}%</p>
                   <p className="text-[9px] font-bold text-gray-400 uppercase">Progress</p>
                 </div>
               </div>
 
               <div className="mb-6 relative z-10">
                 <div className="bg-purple-100 rounded-full h-2.5 p-0.5">
-                  <div className={`bg-purple-400 h-full rounded-full transition-all duration-1000`} style={{ width: `${subject.progress}%` }}></div>
+                  <div className={`bg-green-500 h-full rounded-full transition-all duration-1000`} style={{ width: `${subject.progress}%` }}></div>
                 </div>
               </div>
 
@@ -511,30 +628,30 @@ function RightSidebar() {
         </h3>
         <div className="bg-white border border-gray-100 rounded-2xl p-4 space-y-3 shadow-sm">
           <div className="flex items-center space-x-3 p-3 bg-green-50/50 rounded-xl border border-green-100">
-            <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
-              <span className="text-green-600 text-xs font-bold">✓</span>
+            <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center shrink-0">
+              <span className="text-green-600 text-sm font-bold">✓</span>
             </div>
             <div className="flex-1">
-              <p className="text-xs font-bold text-gray-900">Completed Math Quiz</p>
-              <p className="text-[10px] text-gray-500 font-medium">2 hours ago</p>
+              <p className="text-sm font-bold text-gray-900">Completed Math Quiz</p>
+              <p className="text-xs text-gray-500 font-medium">2 hours ago</p>
             </div>
           </div>
           <div className="flex items-center space-x-3 p-3 bg-blue-50/50 rounded-xl border border-blue-100">
-            <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
-              <span className="text-blue-600 text-xs font-bold">💬</span>
+            <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center shrink-0">
+              <span className="text-blue-600 text-sm font-bold">💬</span>
             </div>
             <div className="flex-1">
-              <p className="text-xs font-bold text-gray-900">ChatBuddy session</p>
-              <p className="text-[10px] text-gray-500 font-medium">Yesterday</p>
+              <p className="text-sm font-bold text-gray-900">ChatBuddy session</p>
+              <p className="text-xs text-gray-500 font-medium">Yesterday</p>
             </div>
           </div>
           <div className="flex items-center space-x-3 p-3 bg-primary/5 rounded-xl border border-primary/10">
-            <div className="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center">
-              <span className="text-primary text-xs font-bold">📝</span>
+            <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center shrink-0">
+              <span className="text-primary text-sm font-bold">📝</span>
             </div>
             <div className="flex-1">
-              <p className="text-xs font-bold text-gray-900">Feelings Explorer</p>
-              <p className="text-[10px] text-gray-500 font-medium">2 days ago</p>
+              <p className="text-sm font-bold text-gray-900">Feelings Explorer</p>
+              <p className="text-xs text-gray-500 font-medium">2 days ago</p>
             </div>
           </div>
         </div>
