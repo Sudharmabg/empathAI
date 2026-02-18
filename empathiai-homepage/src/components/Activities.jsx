@@ -1,11 +1,13 @@
 import { useState } from 'react'
-import { 
-  ClockIcon, 
-  ChartBarIcon, 
+import {
+  ClockIcon,
+  ChartBarIcon,
   PencilSquareIcon,
   MoonIcon,
   FlagIcon,
-  PhoneIcon
+
+  PhoneIcon,
+  LockClosedIcon
 } from '@heroicons/react/24/outline'
 
 export default function Activities({ user }) {
@@ -79,7 +81,7 @@ export default function Activities({ user }) {
             </div>
             <h3 className="text-xl font-semibold text-gray-900 mb-2">{tool.name}</h3>
             <p className="text-gray-700 text-sm mb-4">{tool.description}</p>
-            <button 
+            <button
               onClick={() => setActiveTool(tool.id)}
               className="bg-black text-white px-6 py-2 rounded-lg hover:bg-gray-800 transition-colors"
             >
@@ -104,7 +106,7 @@ export default function Activities({ user }) {
             >
               ×
             </button>
-            
+
             {activeTool === 'meditation' && <MeditationTimer />}
             {activeTool === 'mood' && <MoodTracker />}
             {activeTool === 'gratitude' && <GratitudeJournal />}
@@ -147,12 +149,12 @@ export default function Activities({ user }) {
     return (
       <div className="text-center">
         <h3 className="text-2xl font-bold text-gray-900 mb-6">🧘 Meditation Timer</h3>
-        
+
         {!isActive && (
           <div className="mb-6">
             <label className="block text-gray-700 mb-2">Select Duration:</label>
-            <select 
-              value={duration} 
+            <select
+              value={duration}
               onChange={(e) => setDuration(Number(e.target.value))}
               className="border-2 border-purple-200 rounded-lg px-4 py-2 focus:ring-2 focus:ring-purple-500"
             >
@@ -221,8 +223,13 @@ export default function Activities({ user }) {
 
     return (
       <div>
-        <h3 className="text-2xl font-bold text-gray-900 mb-6 text-center">📊 Mood Tracker</h3>
-        
+        <h3 className="text-2xl font-bold text-gray-900 mb-2 text-center">📊 Mood Tracker</h3>
+
+        <div className="flex items-center justify-center gap-1.5 mb-8 bg-green-50 py-1.5 px-3 rounded-full w-fit mx-auto border border-green-200">
+          <LockClosedIcon className="w-3 h-3 text-green-600" />
+          <p className="text-[10px] text-green-600 font-bold uppercase tracking-wide">Private & Confidential</p>
+        </div>
+
         <div className="mb-6">
           <p className="text-gray-700 mb-4">How are you feeling right now?</p>
           <div className="grid grid-cols-5 gap-4">
@@ -230,11 +237,10 @@ export default function Activities({ user }) {
               <button
                 key={mood.value}
                 onClick={() => setSelectedMood(mood.value)}
-                className={`p-4 rounded-lg border-2 transition-colors ${
-                  selectedMood === mood.value 
-                    ? 'border-purple-500 bg-purple-50' 
-                    : 'border-purple-200 hover:border-purple-300'
-                }`}
+                className={`p-4 rounded-lg border-2 transition-colors ${selectedMood === mood.value
+                  ? 'border-purple-500 bg-purple-50'
+                  : 'border-purple-200 hover:border-purple-300'
+                  }`}
               >
                 <div className="text-3xl mb-2">{mood.emoji}</div>
                 <div className="text-sm">{mood.label}</div>
@@ -295,8 +301,12 @@ export default function Activities({ user }) {
 
     return (
       <div>
-        <h3 className="text-2xl font-bold text-gray-900 mb-6 text-center">📝 Gratitude Journal</h3>
-        
+        <h3 className="text-2xl font-bold text-gray-900 mb-2 text-center">📝 Gratitude Journal</h3>
+        <div className="flex items-center justify-center gap-1.5 mb-8 bg-green-50 py-1.5 px-3 rounded-full w-fit mx-auto border border-green-200">
+          <LockClosedIcon className="w-3 h-3 text-green-600" />
+          <p className="text-[10px] text-green-600 font-bold uppercase tracking-wide">Private & Confidential</p>
+        </div>
+
         <div className="mb-6">
           <label className="block text-gray-700 mb-2">What are you grateful for today?</label>
           <textarea
@@ -356,7 +366,7 @@ export default function Activities({ user }) {
     return (
       <div>
         <h3 className="text-2xl font-bold text-gray-900 mb-6 text-center">🌙 Sleep Tracker</h3>
-        
+
         <div className="space-y-4 mb-6">
           <div>
             <label className="block text-gray-700 mb-2">Bedtime:</label>
@@ -367,7 +377,7 @@ export default function Activities({ user }) {
               className="w-full p-3 border-2 border-purple-200 rounded-lg focus:ring-2 focus:ring-purple-500"
             />
           </div>
-          
+
           <div>
             <label className="block text-gray-700 mb-2">Wake Time:</label>
             <input
@@ -439,13 +449,17 @@ export default function Activities({ user }) {
     }
 
     const toggleGoal = (id) => {
-      setGoals(goals.map(g => g.id === id ? {...g, completed: !g.completed} : g))
+      setGoals(goals.map(g => g.id === id ? { ...g, completed: !g.completed } : g))
     }
 
     return (
       <div>
-        <h3 className="text-2xl font-bold text-gray-900 mb-6 text-center">🎯 Goal Setting</h3>
-        
+        <h3 className="text-2xl font-bold text-gray-900 mb-2 text-center">🎯 Goal Setting</h3>
+        <div className="flex items-center justify-center gap-1.5 mb-8 bg-green-50 py-1.5 px-3 rounded-full w-fit mx-auto border border-green-200">
+          <LockClosedIcon className="w-3 h-3 text-green-600" />
+          <p className="text-[10px] text-green-600 font-bold uppercase tracking-wide">Private & Confidential</p>
+        </div>
+
         <div className="space-y-4 mb-6">
           <div>
             <label className="block text-gray-700 mb-2">Your Goal:</label>
@@ -457,7 +471,7 @@ export default function Activities({ user }) {
               className="w-full p-3 border-2 border-purple-200 rounded-lg focus:ring-2 focus:ring-purple-500"
             />
           </div>
-          
+
           <div>
             <label className="block text-gray-700 mb-2">Target Date:</label>
             <input
@@ -488,9 +502,8 @@ export default function Activities({ user }) {
                 </div>
                 <button
                   onClick={() => toggleGoal(g.id)}
-                  className={`px-3 py-1 rounded text-sm ${
-                    g.completed ? 'bg-green-500 text-white' : 'bg-gray-200 text-gray-700'
-                  }`}
+                  className={`px-3 py-1 rounded text-sm ${g.completed ? 'bg-green-500 text-white' : 'bg-gray-200 text-gray-700'
+                    }`}
                 >
                   {g.completed ? 'Done' : 'Mark Done'}
                 </button>
@@ -530,7 +543,7 @@ export default function Activities({ user }) {
     return (
       <div>
         <h3 className="text-2xl font-bold text-gray-900 mb-6 text-center">📞 Crisis Resources</h3>
-        
+
         <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
           <p className="text-red-800 font-semibold">If you're in immediate danger, call 911</p>
         </div>

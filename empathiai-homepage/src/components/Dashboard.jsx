@@ -16,7 +16,8 @@ import {
   LanguageIcon,
   PaperAirplaneIcon,
   ArrowRightOnRectangleIcon,
-  AcademicCapIcon
+  AcademicCapIcon,
+  CheckCircleIcon
 } from '@heroicons/react/24/outline'
 import Assessment from './Assessment'
 import Chatbot from './Chatbot'
@@ -25,6 +26,7 @@ import ChatBuddy from './ChatBuddy'
 import Curriculum from './Curriculum'
 import Questionnaire from './Questionnaire'
 import Activities from './Activities'
+import Schedule from './Schedule'
 
 export default function Dashboard({ user, onLogout }) {
   const [activeTab, setActiveTab] = useState('overview')
@@ -33,7 +35,39 @@ export default function Dashboard({ user, onLogout }) {
   const [showDailyCheckin, setShowDailyCheckin] = useState(true)
   const [selectedSleep, setSelectedSleep] = useState(null)
   const [selectedMood, setSelectedMood] = useState(null)
+
   const [showBreathing, setShowBreathing] = useState(false)
+  const [activeDay, setActiveDay] = useState('Monday')
+  const [tasks, setTasks] = useState({
+    'Monday': [
+      { id: 1, time: '09:00 AM', title: 'Mathematics - Rational Numbers', type: 'Study', completed: false },
+      { id: 2, time: '11:00 AM', title: 'Box Breathing Session', type: 'Wellness', completed: true },
+      { id: 3, time: '04:00 PM', title: 'Science Project Research', type: 'Study', completed: false },
+    ],
+    'Tuesday': [],
+    'Wednesday': [],
+    'Thursday': [],
+    'Friday': [],
+    'Saturday': [],
+    'Sunday': []
+  })
+  const [showScheduleDropdown, setShowScheduleDropdown] = useState(false)
+  const [showNotificationsDropdown, setShowNotificationsDropdown] = useState(false)
+
+  const [notifications, setNotifications] = useState([
+    { id: 1, title: 'New Math Quiz Available!', time: '10 mins ago', type: 'academic', read: false },
+    { id: 2, title: '7-Day Streak! 🔥', time: '1 hour ago', type: 'achievement', read: false },
+    { id: 3, title: 'Dr. Sarah replied to you', time: '2 hours ago', type: 'social', read: true },
+  ])
+
+  const toggleTaskComplete = (day, taskId) => {
+    setTasks({
+      ...tasks,
+      [day]: tasks[day].map(t =>
+        t.id === taskId ? { ...t, completed: !t.completed } : t
+      )
+    })
+  }
 
   const navigateToChat = (message) => {
     setChatMessage(message)
@@ -44,6 +78,7 @@ export default function Dashboard({ user, onLogout }) {
     { id: 'overview', name: 'Overview', icon: HomeIcon },
     { id: 'chatbuddy', name: 'ChatBuddy', icon: ChatBubbleLeftRightIcon },
     { id: 'curriculum', name: 'Curriculum', icon: AcademicCapIcon },
+    { id: 'schedule', name: 'My Schedule', icon: CalendarIcon },
     { id: 'questionnaire', name: 'Feelings Explorer', icon: ClipboardDocumentListIcon },
     { id: 'activities', name: 'Activities', icon: PuzzlePieceIcon }
   ]
@@ -84,10 +119,50 @@ export default function Dashboard({ user, onLogout }) {
             </div>
 
             {/* Calendar Icon */}
-            <CalendarIcon
-              onClick={() => setActiveHeaderModal('calendar')}
-              className="w-6 h-6 text-gray-400 hover:text-primary cursor-pointer transition-colors"
-            />
+            {/* Calendar Icon - Daily Schedule Tracker */}
+            <div className="relative group">
+              <CalendarIcon
+                onClick={() => setShowScheduleDropdown(!showScheduleDropdown)}
+                className={`w-6 h-6 cursor-pointer transition-colors ${tasks['Monday'].every(t => t.completed) && tasks['Monday'].length > 0
+                  ? 'text-green-500'
+                  : 'text-gray-400 hover:text-purple-600'
+                  }`}
+              />
+              <div
+                className={`absolute top-full right-0 mt-4 w-72 bg-white rounded-2xl shadow-xl border-2 border-purple-100 p-4 transition-all duration-300 transform origin-top-right z-50 ${showScheduleDropdown ? 'opacity-100 scale-100' : 'opacity-0 scale-95 pointer-events-none'}`}
+              >
+                <div className="flex justify-between items-center mb-3">
+                  <h3 className="font-black text-black text-sm">Today's Focus</h3>
+                  <span className="text-xs font-bold text-gray-400">{tasks['Monday'].filter(t => t.completed).length}/{tasks['Monday'].length} done</span>
+                </div>
+                {tasks['Monday'].length === 0 ? (
+                  <p className="text-xs text-center text-gray-400 py-4">No tasks for today</p>
+                ) : (
+                  <div className="space-y-2">
+                    {tasks['Monday'].map(task => (
+                      <div key={task.id} className="flex items-center gap-3 p-2 hover:bg-gray-50 rounded-lg transition-colors cursor-pointer" onClick={() => toggleTaskComplete('Monday', task.id)}>
+                        <button className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all ${task.completed ? 'bg-green-500 border-green-500' : 'border-gray-300'}`}>
+                          {task.completed && <CheckCircleIcon className="w-3 h-3 text-white" />}
+                        </button>
+                        <div className="flex-1">
+                          <p className={`text-xs font-bold ${task.completed ? 'text-gray-400' : 'text-black'}`}>{task.title}</p>
+                          <p className="text-[10px] text-gray-400">{task.time}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                <button
+                  onClick={() => {
+                    setActiveTab('schedule')
+                    setShowScheduleDropdown(false)
+                  }}
+                  className="w-full mt-3 bg-black text-white text-xs font-bold py-2 rounded-lg hover:bg-gray-800 transition-colors"
+                >
+                  View Full Schedule
+                </button>
+              </div>
+            </div>
 
             {/* Gift Icon */}
             <GiftIcon
@@ -96,12 +171,47 @@ export default function Dashboard({ user, onLogout }) {
             />
 
             {/* Notification Bell */}
-            <div className="relative">
+            {/* Notification Bell */}
+            <div className="relative group">
               <BellIcon
-                onClick={() => setActiveHeaderModal('notifications')}
-                className="w-6 h-6 text-gray-400 hover:text-primary cursor-pointer transition-colors"
+                onClick={() => setShowNotificationsDropdown(!showNotificationsDropdown)}
+                className={`w-6 h-6 cursor-pointer transition-colors ${notifications.some(n => !n.read) ? 'text-primary animate-swing' : 'text-gray-400 hover:text-purple-600'}`}
               />
-              <span className="absolute -top-1 -right-1 bg-primary text-white text-[10px] font-black rounded-full w-4 h-4 flex items-center justify-center border-2 border-white">1</span>
+              {notifications.some(n => !n.read) && (
+                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-black rounded-full w-4 h-4 flex items-center justify-center border-2 border-white animate-bounce-subtle">
+                  {notifications.filter(n => !n.read).length}
+                </span>
+              )}
+
+              {/* Notifications Dropdown */}
+              <div
+                className={`absolute top-full right-0 mt-4 w-80 bg-white rounded-2xl shadow-2xl border-2 border-purple-100 p-0 transition-all duration-300 transform origin-top-right z-50 overflow-hidden ${showNotificationsDropdown ? 'opacity-100 scale-100' : 'opacity-0 scale-95 pointer-events-none'}`}
+              >
+                <div className="bg-purple-50 p-4 border-b border-purple-100 flex justify-between items-center">
+                  <h3 className="font-black text-dark-navy text-sm">Notifications</h3>
+                  <button className="text-[10px] font-bold text-purple-600 hover:underline">Mark all read</button>
+                </div>
+                <div className="max-h-80 overflow-y-auto">
+                  {notifications.length === 0 ? (
+                    <div className="p-8 text-center text-gray-400 text-sm">No new notifications</div>
+                  ) : (
+                    <div className="divide-y divide-gray-50">
+                      {notifications.map((notification) => (
+                        <div key={notification.id} className={`p-4 hover:bg-gray-50 transition-colors cursor-pointer flex gap-3 ${!notification.read ? 'bg-purple-50/30' : ''}`}>
+                          <div className={`w-2 h-2 rounded-full mt-1.5 shrink-0 ${!notification.read ? 'bg-primary' : 'bg-gray-200'}`}></div>
+                          <div>
+                            <p className={`text-sm ${!notification.read ? 'font-bold text-black' : 'font-medium text-gray-500'}`}>{notification.title}</p>
+                            <p className="text-[10px] text-gray-400 mt-1">{notification.time}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+                <div className="p-2 border-t border-purple-50 text-center">
+                  <button className="text-xs font-bold text-gray-500 hover:text-black transition-colors w-full py-2">View All Activity</button>
+                </div>
+              </div>
             </div>
 
             {/* User Avatar */}
@@ -155,6 +265,7 @@ export default function Dashboard({ user, onLogout }) {
           {activeTab === 'overview' && <Overview user={user} setActiveTab={setActiveTab} />}
           {activeTab === 'chatbuddy' && <ChatBuddy user={user} initialMessage={chatMessage} setChatMessage={setChatMessage} />}
           {activeTab === 'curriculum' && <Curriculum user={user} setActiveTab={setActiveTab} navigateToChat={navigateToChat} />}
+          {activeTab === 'schedule' && <Schedule user={user} tasks={tasks} setTasks={setTasks} activeDay={activeDay} setActiveDay={setActiveDay} />}
           {activeTab === 'questionnaire' && <Questionnaire user={user} />}
           {activeTab === 'activities' && <Activities user={user} />}
         </main>

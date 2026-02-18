@@ -25,10 +25,10 @@ export default function Header() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className={`flex justify-between items-center transition-all duration-500 rounded-2xl px-6 ${isScrolled ? 'bg-white/80 backdrop-blur-xl shadow-lg border border-white/20 py-3' : 'bg-transparent py-4'}`}>
           <div className="flex items-center gap-2 group cursor-pointer">
-            <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center group-hover:rotate-12 transition-transform shadow-lg shadow-primary/20">
-              <SparklesIcon className="w-6 h-6 text-white" />
+            <div className="w-10 h-10 bg-purple-200 rounded-xl flex items-center justify-center group-hover:rotate-12 transition-transform shadow-lg shadow-purple-200/50">
+              <SparklesIcon className="w-6 h-6 text-black" />
             </div>
-            <h1 className="text-2xl font-lora font-bold bg-gradient-to-r from-primary to-light-purple bg-clip-text text-transparent">
+            <h1 className="text-2xl font-lora font-bold text-black tracking-tight">
               EmpathAI
             </h1>
           </div>
@@ -37,7 +37,7 @@ export default function Header() {
             {navItems.map((item) => (
               <button
                 key={item.id}
-                className="px-5 py-2 rounded-xl text-sm font-bold text-gray-700 hover:text-primary hover:bg-primary/5 transition-all"
+                className="px-5 py-2 rounded-xl text-sm font-bold text-gray-700 hover:text-purple-700 hover:bg-purple-50 transition-all"
               >
                 {item.label}
               </button>
@@ -49,7 +49,7 @@ export default function Header() {
               Help Center
             </button>
             <button
-              className="bg-primary text-white px-6 py-2.5 rounded-xl text-sm font-bold hover:bg-navy-purple transition-all shadow-md active:scale-95"
+              className="bg-black text-white px-6 py-2.5 rounded-xl text-sm font-bold hover:bg-gray-800 transition-all shadow-md active:scale-95"
             >
               Sign In
             </button>
