@@ -6,11 +6,14 @@ import {
   ArrowLeftOnRectangleIcon,
   Bars3Icon,
   XMarkIcon,
-  AcademicCapIcon
+  AcademicCapIcon,
+  FlagIcon
 } from '@heroicons/react/24/outline'
 import UserManagement from './UserManagement'
 import AssessmentManagement from './AssessmentManagement'
 import CurriculumManagement from './CurriculumManagement'
+import FlaggedChats from './FlaggedChats'
+import AnalyticsDashboard from './AnalyticsDashboard'
 
 export default function AdminPanel({ onLogout }) {
   const [activeTab, setActiveTab] = useState('users')
@@ -20,6 +23,7 @@ export default function AdminPanel({ onLogout }) {
     { id: 'users', label: 'Users', icon: UsersIcon },
     { id: 'assessments', label: 'Feelings Explorer', icon: ClipboardDocumentCheckIcon },
     { id: 'curriculum', label: 'Curriculum', icon: AcademicCapIcon },
+    { id: 'flagged_chats', label: 'Support Alerts', icon: FlagIcon },
     { id: 'analytics', label: 'Analytics', icon: ChartBarIcon },
   ]
 
@@ -31,6 +35,10 @@ export default function AdminPanel({ onLogout }) {
         return <AssessmentManagement />
       case 'curriculum':
         return <CurriculumManagement />
+      case 'flagged_chats':
+        return <FlaggedChats />
+      case 'analytics':
+        return <AnalyticsDashboard />
       default:
         return (
           <div className="p-8 text-center text-gray-500">
@@ -132,7 +140,8 @@ export default function AdminPanel({ onLogout }) {
                   activeTab === 'users' ? 'users and roles' :
                     activeTab === 'assessments' ? 'emotional check-ins and activities' :
                       activeTab === 'curriculum' ? 'syllabi and learning content' :
-                        'data and insights'
+                        activeTab === 'flagged_chats' ? 'high-risk student interactions' :
+                          'data and insights'
                 }.
               </p>
             </div>

@@ -7,19 +7,19 @@ export default function AssessmentManagement() {
             id: 1,
             text: 'How are you feeling today?',
             options: ['Very Happy 😊', 'Happy 🙂', 'Okay 😐', 'Sad 😢'],
-            group: 'Daily Check-in'
+            groups: ['Daily Check-in']
         },
         {
             id: 2,
             text: 'How well did you sleep last night?',
             options: ['Very Well 😴', 'Good 😌', 'Not Great 😪', 'Poorly 😫'],
-            group: 'Daily Check-in'
+            groups: ['Daily Check-in']
         },
         {
             id: 3,
             text: 'How confident do you feel about your studies?',
             options: ['Very Confident 💪', 'Confident 👍', 'Somewhat Confident 🤔', 'Not Confident 😟'],
-            group: 'Class 8th'
+            groups: ['Class 8th']
         },
     ])
 
@@ -43,7 +43,7 @@ export default function AssessmentManagement() {
         option2: '',
         option3: '',
         option4: '',
-        group: ''
+        groups: []
     })
 
     const [groupFormData, setGroupFormData] = useState({
@@ -76,7 +76,7 @@ export default function AssessmentManagement() {
         return colorMap[color] || colorMap.purple
     }
 
-    const handleOpenQuestionModal = (group, question = null) => {
+    const handleOpenQuestionModal = (question = null) => {
         if (question) {
             setEditingQuestion(question)
             setQuestionFormData({
@@ -85,7 +85,7 @@ export default function AssessmentManagement() {
                 option2: question.options[1] || '',
                 option3: question.options[2] || '',
                 option4: question.options[3] || '',
-                group: question.group
+                groups: question.groups || []
             })
         } else {
             setEditingQuestion(null)
@@ -95,7 +95,7 @@ export default function AssessmentManagement() {
                 option2: '',
                 option3: '',
                 option4: '',
-                group: group
+                groups: selectedGroup ? [selectedGroup] : []
             })
         }
         setIsQuestionModalOpen(true)
@@ -122,7 +122,7 @@ export default function AssessmentManagement() {
         if (editingQuestion) {
             setQuestions(questions.map(q =>
                 q.id === editingQuestion.id
-                    ? { ...q, text: questionFormData.text, options, group: questionFormData.group }
+                    ? { ...q, text: questionFormData.text, options, groups: questionFormData.groups }
                     : q
             ))
         } else {
@@ -130,7 +130,7 @@ export default function AssessmentManagement() {
                 id: Date.now(),
                 text: questionFormData.text,
                 options,
-                group: questionFormData.group
+                groups: questionFormData.groups
             }
             setQuestions([...questions, newQuestion])
         }
@@ -166,7 +166,7 @@ export default function AssessmentManagement() {
             return
         }
 
-        const hasQuestions = questions.some(q => q.group === groupId)
+        const hasQuestions = questions.some(q => q.groups.includes(groupId))
         if (hasQuestions) {
             alert('Cannot delete group with existing questions. Please delete or reassign questions first.')
             return
@@ -185,11 +185,11 @@ export default function AssessmentManagement() {
     }
 
     const getGroupQuestions = (groupId) => {
-        return questions.filter(q => q.group === groupId)
+        return questions.filter(q => q.groups.includes(groupId))
     }
 
     const filteredQuestions = selectedGroup
-        ? questions.filter(q => q.group === selectedGroup)
+        ? questions.filter(q => q.groups.includes(selectedGroup))
         : questions
 
     const searchedQuestions = filteredQuestions.filter(q => {
@@ -212,7 +212,7 @@ export default function AssessmentManagement() {
                     </div>
                     <div className="flex gap-2">
                         <button
-                            onClick={() => selectedGroup ? handleOpenQuestionModal(selectedGroup) : alert('Please select a group first')}
+                            onClick={() => handleOpenQuestionModal()}
                             className="flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500"
                         >
                             <PlusIcon className="w-5 h-5 mr-2" />
@@ -290,13 +290,6 @@ export default function AssessmentManagement() {
                         <h4 className="text-sm font-semibold text-gray-700 uppercase">
                             Questions in {groups.find(g => g.id === selectedGroup)?.name}
                         </h4>
-                        <button
-                            onClick={() => handleOpenQuestionModal(selectedGroup)}
-                            className="flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500"
-                        >
-                            <PlusIcon className="w-5 h-5 mr-2" />
-                            Add Question
-                        </button>
                     </div>
 
                     {/* Search Bar */}
@@ -318,7 +311,7 @@ export default function AssessmentManagement() {
                                     {searchTerm ? `No questions found for "${searchTerm}"` : 'No questions in this group yet.'}
                                 </p>
                                 <button
-                                    onClick={() => handleOpenQuestionModal(selectedGroup)}
+                                    onClick={() => handleOpenQuestionModal()}
                                     className="mt-4 text-purple-600 hover:text-purple-700 text-sm font-medium"
                                 >
                                     Add your first question
@@ -349,7 +342,7 @@ export default function AssessmentManagement() {
                                             </div>
                                             <div className="flex items-center gap-2 ml-4">
                                                 <button
-                                                    onClick={() => handleOpenQuestionModal(selectedGroup, question)}
+                                                    onClick={() => handleOpenQuestionModal(question)}
                                                     className="p-2 text-indigo-600 hover:text-indigo-900 hover:bg-indigo-50 rounded-md"
                                                     title="Edit Question"
                                                 >
@@ -414,6 +407,35 @@ export default function AssessmentManagement() {
                                             placeholder="e.g., How are you feeling today?"
                                             className="block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-purple-500 focus:border-purple-500 sm:text-sm"
                                         />
+                                    </div>
+
+                                    {/* Group Selection */}
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                                            Assign to Groups
+                                        </label>
+                                        <div className="grid grid-cols-2 gap-2 max-h-40 overflow-y-auto p-2 border border-gray-200 rounded-md">
+                                            {groups.map(group => (
+                                                <label key={group.id} className="flex items-center space-x-2 p-2 rounded hover:bg-gray-50 cursor-pointer">
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={questionFormData.groups.includes(group.id)}
+                                                        onChange={(e) => {
+                                                            if (e.target.checked) {
+                                                                setQuestionFormData(prev => ({ ...prev, groups: [...prev.groups, group.id] }))
+                                                            } else {
+                                                                setQuestionFormData(prev => ({ ...prev, groups: prev.groups.filter(id => id !== group.id) }))
+                                                            }
+                                                        }}
+                                                        className="h-4 w-4 text-purple-600 focus:ring-purple-500 border-gray-300 rounded"
+                                                    />
+                                                    <span className="text-sm text-gray-700">{group.name}</span>
+                                                </label>
+                                            ))}
+                                        </div>
+                                        {questionFormData.groups.length === 0 && (
+                                            <p className="mt-1 text-xs text-red-500">Please select at least one group.</p>
+                                        )}
                                     </div>
 
                                     {/* Answer Options */}

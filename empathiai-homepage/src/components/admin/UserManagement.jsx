@@ -1,9 +1,10 @@
 import { useState } from 'react'
-import { PlusIcon, PencilIcon, TrashIcon, UserPlusIcon, ChevronDownIcon, ChevronRightIcon, MagnifyingGlassIcon, KeyIcon } from '@heroicons/react/24/outline'
+import { PlusIcon, PencilIcon, TrashIcon, UserPlusIcon, ChevronDownIcon, ChevronRightIcon, MagnifyingGlassIcon, KeyIcon, ArrowLeftIcon, BuildingLibraryIcon } from '@heroicons/react/24/outline'
 
 export default function UserManagement() {
     const [activeTab, setActiveTab] = useState('student')
     const [searchTerm, setSearchTerm] = useState('')
+    const [selectedSchool, setSelectedSchool] = useState(null)
     const [resetPasswordUser, setResetPasswordUser] = useState(null)
     const [newPassword, setNewPassword] = useState('')
     const [users, setUsers] = useState([
@@ -13,7 +14,7 @@ export default function UserManagement() {
             email: 'aarav.sharma@example.com',
             role: 'student',
             class: '4th Standard',
-            school: 'Delhi Public School',
+            school: 'TIGPS',
             parentName: 'Rajesh Sharma',
             phoneNumber: '+91 98765 43210',
             dateOfBirth: '2014-05-15',
@@ -27,13 +28,43 @@ export default function UserManagement() {
             email: 'diya.patel@example.com',
             role: 'student',
             class: '5th Standard',
-            school: 'Ryan International School',
+            school: 'TIGWS',
             parentName: 'Amit Patel',
             phoneNumber: '+91 98123 45678',
             dateOfBirth: '2013-08-22',
             address: 'Andheri West, Mumbai',
             bloodGroup: 'A+',
             emergencyContact: '+91 98123 45679'
+        },
+        {
+            id: 101,
+            name: 'Rohan Gupta',
+            email: 'rohan.gupta@example.com',
+            role: 'student',
+            class: '6th Standard',
+            school: 'TIGPS',
+            parentName: 'Suresh Gupta',
+            phoneNumber: '+91 98765 43222'
+        },
+        {
+            id: 102,
+            name: 'Ananya Singh',
+            email: 'ananya.singh@example.com',
+            role: 'student',
+            class: '4th Standard',
+            school: 'TIGWS',
+            parentName: 'Vikram Singh',
+            phoneNumber: '+91 98765 43333'
+        },
+        {
+            id: 103,
+            name: 'Ishaan Kumar',
+            email: 'ishaan.kumar@example.com',
+            role: 'student',
+            class: '5th Standard',
+            school: 'TIGPS',
+            parentName: 'Meera Kumar',
+            phoneNumber: '+91 98765 43444'
         },
         {
             id: 3,
@@ -106,7 +137,7 @@ export default function UserManagement() {
                 role: activeTab,
                 password: '',
                 class: '',
-                school: '',
+                school: activeTab === 'student' && selectedSchool ? selectedSchool : '',
                 parentName: '',
                 phoneNumber: '',
                 dateOfBirth: '',
@@ -173,6 +204,7 @@ export default function UserManagement() {
 
     const filteredUsers = users
         .filter(u => u.role === activeTab)
+        .filter(u => !selectedSchool || u.school === selectedSchool) // Filter by selected school if set
         .filter(u => {
             if (!searchTerm) return true
             const search = searchTerm.toLowerCase()
@@ -202,7 +234,8 @@ export default function UserManagement() {
                             key={role.id}
                             onClick={() => {
                                 setActiveTab(role.id)
-                                setExpandedRow(null) // Reset expanded row when switching tabs
+                                setExpandedRow(null)
+                                setSelectedSchool(null) // Reset selected school on tab change
                             }}
                             className={`
                 whitespace-nowrap pb-4 px-1 border-b-2 font-medium text-sm transition-colors
@@ -221,9 +254,19 @@ export default function UserManagement() {
             {/* Action Bar */}
             <div className="mb-6">
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
-                    <h3 className="text-lg font-medium text-gray-900">
-                        Manage {roles.find(r => r.id === activeTab)?.label}
-                    </h3>
+                    <div className="flex items-center gap-3">
+                        {selectedSchool && activeTab === 'student' && (
+                            <button
+                                onClick={() => setSelectedSchool(null)}
+                                className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                            >
+                                <ArrowLeftIcon className="w-5 h-5 text-gray-600" />
+                            </button>
+                        )}
+                        <h3 className="text-lg font-medium text-gray-900">
+                            {selectedSchool ? `${selectedSchool} Students` : `Manage ${roles.find(r => r.id === activeTab)?.label}`}
+                        </h3>
+                    </div>
                     <button
                         onClick={() => handleOpenModal()}
                         className="flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500"
@@ -256,168 +299,236 @@ export default function UserManagement() {
                 </div>
             </div>
 
-            {/* User Table */}
-            <div className="flex flex-col">
-                <div className="-my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
-                    <div className="py-2 align-middle inline-block min-w-full sm:px-6 lg:px-8">
-                        <div className="shadow overflow-hidden border-b border-gray-200 sm:rounded-lg">
-                            <table className="min-w-full divide-y divide-gray-200">
-                                <thead className="bg-gray-50">
-                                    <tr>
-                                        {activeTab === 'student' && (
-                                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-8">
-                                                {/* Expand column */}
-                                            </th>
+            {/* Content Area */}
+            {activeTab === 'student' && !selectedSchool ? (
+                /* School Cards View */
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {/* Compute unique schools from filtered users (or all users if needed, but let's stick to current search if present) */}
+                    {(() => {
+                        // First get all students matching search
+                        const studentUsers = users.filter(u => u.role === 'student')
+                            .filter(u => !searchTerm ||
+                                u.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                                u.school?.toLowerCase().includes(searchTerm.toLowerCase())
+                            );
+
+                        // Group by school
+                        const schoolsMap = {};
+                        studentUsers.forEach(u => {
+                            const schoolName = u.school || 'Unknown School';
+                            if (!schoolsMap[schoolName]) {
+                                schoolsMap[schoolName] = { count: 0, students: [] };
+                            }
+                            schoolsMap[schoolName].count++;
+                            schoolsMap[schoolName].students.push(u);
+                        });
+
+                        const schoolKeys = Object.keys(schoolsMap);
+
+                        if (schoolKeys.length === 0) {
+                            return <div className="col-span-full text-center text-gray-500 py-10">No schools found matching your search.</div>
+                        }
+
+                        return schoolKeys.map(schoolName => (
+                            <div
+                                key={schoolName}
+                                onClick={() => setSelectedSchool(schoolName)}
+                                className="bg-white overflow-hidden rounded-xl border border-gray-200 hover:border-purple-300 hover:shadow-lg transition-all cursor-pointer group"
+                            >
+                                <div className="p-6">
+                                    <div className="flex items-center justify-between mb-4">
+                                        <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
+                                            <BuildingLibraryIcon className="w-6 h-6 text-purple-600" />
+                                        </div>
+                                        <div className="bg-purple-50 text-purple-700 text-xs font-bold px-3 py-1 rounded-full">
+                                            {schoolsMap[schoolName].count} Students
+                                        </div>
+                                    </div>
+                                    <h3 className="text-lg font-bold text-gray-900 mb-1">{schoolName}</h3>
+                                    <p className="text-sm text-gray-500">Click to view student list</p>
+                                </div>
+                                <div className="bg-gray-50 px-6 py-4 border-t border-gray-100">
+                                    <div className="flex -space-x-2 overflow-hidden">
+                                        {schoolsMap[schoolName].students.slice(0, 5).map((student, i) => (
+                                            <div key={student.id} className="inline-block h-8 w-8 rounded-full ring-2 ring-white bg-purple-200 flex items-center justify-center text-xs font-bold text-purple-700" title={student.name}>
+                                                {student.name.charAt(0)}
+                                            </div>
+                                        ))}
+                                        {schoolsMap[schoolName].count > 5 && (
+                                            <div className="inline-block h-8 w-8 rounded-full ring-2 ring-white bg-gray-100 flex items-center justify-center text-xs font-bold text-gray-500">
+                                                +{schoolsMap[schoolName].count - 5}
+                                            </div>
                                         )}
-                                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                            Name
-                                        </th>
-                                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                            Email
-                                        </th>
-                                        {/* Dynamic Columns based on Role */}
-                                        {activeTab === 'student' && (
-                                            <>
-                                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Class</th>
-                                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">School</th>
-                                            </>
-                                        )}
-                                        {activeTab === 'school_admin' && (
-                                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">School</th>
-                                        )}
-                                        {activeTab === 'psychologist' && (
-                                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">License ID</th>
-                                        )}
-                                        {activeTab === 'content_admin' && (
-                                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Department</th>
-                                        )}
-                                        <th scope="col" className="relative px-6 py-3">
-                                            <span className="sr-only">Actions</span>
-                                        </th>
-                                    </tr>
-                                </thead>
-                                <tbody className="bg-white divide-y divide-gray-200">
-                                    {filteredUsers.length === 0 ? (
+                                    </div>
+                                </div>
+                            </div>
+                        ));
+                    })()}
+                </div>
+            ) : (
+                /* User Table View */
+                <div className="flex flex-col">
+                    <div className="-my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
+                        <div className="py-2 align-middle inline-block min-w-full sm:px-6 lg:px-8">
+                            <div className="shadow overflow-hidden border-b border-gray-200 sm:rounded-lg">
+                                <table className="min-w-full divide-y divide-gray-200">
+                                    <thead className="bg-gray-50">
                                         <tr>
-                                            <td colSpan="7" className="px-6 py-8 text-center">
-                                                <div className="text-gray-500">
-                                                    {searchTerm ? (
-                                                        <>
-                                                            <p className="text-sm font-medium">No results found for "{searchTerm}"</p>
-                                                            <p className="text-xs mt-1">Try adjusting your search terms</p>
-                                                        </>
-                                                    ) : (
-                                                        <p className="text-sm">No users found for this role.</p>
-                                                    )}
-                                                </div>
-                                            </td>
+                                            {activeTab === 'student' && (
+                                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-8">
+                                                    {/* Expand column */}
+                                                </th>
+                                            )}
+                                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                Name
+                                            </th>
+                                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                Email
+                                            </th>
+                                            {/* Dynamic Columns based on Role */}
+                                            {activeTab === 'student' && (
+                                                <>
+                                                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Class</th>
+                                                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">School</th>
+                                                </>
+                                            )}
+                                            {activeTab === 'school_admin' && (
+                                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">School</th>
+                                            )}
+                                            {activeTab === 'psychologist' && (
+                                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">License ID</th>
+                                            )}
+                                            {activeTab === 'content_admin' && (
+                                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Department</th>
+                                            )}
+                                            <th scope="col" className="relative px-6 py-3">
+                                                <span className="sr-only">Actions</span>
+                                            </th>
                                         </tr>
-                                    ) : (
-                                        filteredUsers.map((user) => (
-                                            <>
-                                                <tr key={user.id} className="hover:bg-gray-50">
-                                                    {activeTab === 'student' && (
+                                    </thead>
+                                    <tbody className="bg-white divide-y divide-gray-200">
+                                        {filteredUsers.length === 0 ? (
+                                            <tr>
+                                                <td colSpan="7" className="px-6 py-8 text-center">
+                                                    <div className="text-gray-500">
+                                                        {searchTerm ? (
+                                                            <>
+                                                                <p className="text-sm font-medium">No results found for "{searchTerm}"</p>
+                                                                <p className="text-xs mt-1">Try adjusting your search terms</p>
+                                                            </>
+                                                        ) : (
+                                                            <p className="text-sm">No users found for this role.</p>
+                                                        )}
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        ) : (
+                                            filteredUsers.map((user) => (
+                                                <>
+                                                    <tr key={user.id} className="hover:bg-gray-50">
+                                                        {activeTab === 'student' && (
+                                                            <td className="px-6 py-4 whitespace-nowrap">
+                                                                <button
+                                                                    onClick={() => toggleRow(user.id)}
+                                                                    className="text-gray-400 hover:text-gray-600"
+                                                                >
+                                                                    {expandedRow === user.id ? (
+                                                                        <ChevronDownIcon className="w-5 h-5" />
+                                                                    ) : (
+                                                                        <ChevronRightIcon className="w-5 h-5" />
+                                                                    )}
+                                                                </button>
+                                                            </td>
+                                                        )}
                                                         <td className="px-6 py-4 whitespace-nowrap">
+                                                            <div className="text-sm font-medium text-gray-900">{user.name}</div>
+                                                        </td>
+                                                        <td className="px-6 py-4 whitespace-nowrap">
+                                                            <div className="text-sm text-gray-500">{user.email}</div>
+                                                        </td>
+                                                        {/* Dynamic Render based on Role */}
+                                                        {activeTab === 'student' && (
+                                                            <>
+                                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{user.class}</td>
+                                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{user.school}</td>
+                                                            </>
+                                                        )}
+                                                        {activeTab === 'school_admin' && (
+                                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{user.school}</td>
+                                                        )}
+                                                        {activeTab === 'psychologist' && (
+                                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{user.license}</td>
+                                                        )}
+                                                        {activeTab === 'content_admin' && (
+                                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{user.department}</td>
+                                                        )}
+                                                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                                             <button
-                                                                onClick={() => toggleRow(user.id)}
-                                                                className="text-gray-400 hover:text-gray-600"
+                                                                onClick={() => handleOpenModal(user)}
+                                                                className="text-indigo-600 hover:text-indigo-900 mr-3"
+                                                                title="Edit User"
                                                             >
-                                                                {expandedRow === user.id ? (
-                                                                    <ChevronDownIcon className="w-5 h-5" />
-                                                                ) : (
-                                                                    <ChevronRightIcon className="w-5 h-5" />
-                                                                )}
+                                                                <PencilIcon className="w-5 h-5" />
+                                                            </button>
+                                                            <button
+                                                                onClick={() => handleResetPassword(user)}
+                                                                className="text-purple-600 hover:text-purple-900 mr-3"
+                                                                title="Reset Password"
+                                                            >
+                                                                <KeyIcon className="w-5 h-5" />
+                                                            </button>
+                                                            <button
+                                                                onClick={() => handleDeleteUser(user.id)}
+                                                                className="text-red-600 hover:text-red-900"
+                                                                title="Delete User"
+                                                            >
+                                                                <TrashIcon className="w-5 h-5" />
                                                             </button>
                                                         </td>
-                                                    )}
-                                                    <td className="px-6 py-4 whitespace-nowrap">
-                                                        <div className="text-sm font-medium text-gray-900">{user.name}</div>
-                                                    </td>
-                                                    <td className="px-6 py-4 whitespace-nowrap">
-                                                        <div className="text-sm text-gray-500">{user.email}</div>
-                                                    </td>
-                                                    {/* Dynamic Render based on Role */}
-                                                    {activeTab === 'student' && (
-                                                        <>
-                                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{user.class}</td>
-                                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{user.school}</td>
-                                                        </>
-                                                    )}
-                                                    {activeTab === 'school_admin' && (
-                                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{user.school}</td>
-                                                    )}
-                                                    {activeTab === 'psychologist' && (
-                                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{user.license}</td>
-                                                    )}
-                                                    {activeTab === 'content_admin' && (
-                                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{user.department}</td>
-                                                    )}
-                                                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                                        <button
-                                                            onClick={() => handleOpenModal(user)}
-                                                            className="text-indigo-600 hover:text-indigo-900 mr-3"
-                                                            title="Edit User"
-                                                        >
-                                                            <PencilIcon className="w-5 h-5" />
-                                                        </button>
-                                                        <button
-                                                            onClick={() => handleResetPassword(user)}
-                                                            className="text-purple-600 hover:text-purple-900 mr-3"
-                                                            title="Reset Password"
-                                                        >
-                                                            <KeyIcon className="w-5 h-5" />
-                                                        </button>
-                                                        <button
-                                                            onClick={() => handleDeleteUser(user.id)}
-                                                            className="text-red-600 hover:text-red-900"
-                                                            title="Delete User"
-                                                        >
-                                                            <TrashIcon className="w-5 h-5" />
-                                                        </button>
-                                                    </td>
-                                                </tr>
-                                                {/* Expanded Row for Students */}
-                                                {activeTab === 'student' && expandedRow === user.id && (
-                                                    <tr className="bg-purple-50">
-                                                        <td colSpan="6" className="px-6 py-4">
-                                                            <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
-                                                                <div>
-                                                                    <span className="font-semibold text-gray-700">Parent Name:</span>
-                                                                    <p className="text-gray-600">{user.parentName || 'N/A'}</p>
-                                                                </div>
-                                                                <div>
-                                                                    <span className="font-semibold text-gray-700">Phone Number:</span>
-                                                                    <p className="text-gray-600">{user.phoneNumber || 'N/A'}</p>
-                                                                </div>
-                                                                <div>
-                                                                    <span className="font-semibold text-gray-700">Date of Birth:</span>
-                                                                    <p className="text-gray-600">{user.dateOfBirth || 'N/A'}</p>
-                                                                </div>
-                                                                <div>
-                                                                    <span className="font-semibold text-gray-700">Blood Group:</span>
-                                                                    <p className="text-gray-600">{user.bloodGroup || 'N/A'}</p>
-                                                                </div>
-                                                                <div>
-                                                                    <span className="font-semibold text-gray-700">Emergency Contact:</span>
-                                                                    <p className="text-gray-600">{user.emergencyContact || 'N/A'}</p>
-                                                                </div>
-                                                                <div className="col-span-2 md:col-span-1">
-                                                                    <span className="font-semibold text-gray-700">Address:</span>
-                                                                    <p className="text-gray-600">{user.address || 'N/A'}</p>
-                                                                </div>
-                                                            </div>
-                                                        </td>
                                                     </tr>
-                                                )}
-                                            </>
-                                        ))
-                                    )}
-                                </tbody>
-                            </table>
+                                                    {/* Expanded Row for Students */}
+                                                    {activeTab === 'student' && expandedRow === user.id && (
+                                                        <tr className="bg-purple-50">
+                                                            <td colSpan="6" className="px-6 py-4">
+                                                                <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
+                                                                    <div>
+                                                                        <span className="font-semibold text-gray-700">Parent Name:</span>
+                                                                        <p className="text-gray-600">{user.parentName || 'N/A'}</p>
+                                                                    </div>
+                                                                    <div>
+                                                                        <span className="font-semibold text-gray-700">Phone Number:</span>
+                                                                        <p className="text-gray-600">{user.phoneNumber || 'N/A'}</p>
+                                                                    </div>
+                                                                    <div>
+                                                                        <span className="font-semibold text-gray-700">Date of Birth:</span>
+                                                                        <p className="text-gray-600">{user.dateOfBirth || 'N/A'}</p>
+                                                                    </div>
+                                                                    <div>
+                                                                        <span className="font-semibold text-gray-700">Blood Group:</span>
+                                                                        <p className="text-gray-600">{user.bloodGroup || 'N/A'}</p>
+                                                                    </div>
+                                                                    <div>
+                                                                        <span className="font-semibold text-gray-700">Emergency Contact:</span>
+                                                                        <p className="text-gray-600">{user.emergencyContact || 'N/A'}</p>
+                                                                    </div>
+                                                                    <div className="col-span-2 md:col-span-1">
+                                                                        <span className="font-semibold text-gray-700">Address:</span>
+                                                                        <p className="text-gray-600">{user.address || 'N/A'}</p>
+                                                                    </div>
+                                                                </div>
+                                                            </td>
+                                                        </tr>
+                                                    )}
+                                                </>
+                                            ))
+                                        )}
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
+            )}
 
             {/* Create/Edit Modal */}
             {isModalOpen && (

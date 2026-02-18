@@ -9,7 +9,8 @@ import {
     QuestionMarkCircleIcon,
     ChevronRightIcon,
     ChevronDownIcon,
-    AcademicCapIcon
+    AcademicCapIcon,
+    PhotoIcon
 } from '@heroicons/react/24/outline'
 
 export default function CurriculumManagement() {
@@ -122,6 +123,7 @@ export default function CurriculumManagement() {
                 title: module.title,
                 videoUrl: module.videoUrl,
                 summary: module.summary,
+                summaryImage: module.summaryImage || '',
                 learningObjectives: module.learningObjectives.join('\n'),
                 quiz: module.quiz || []
             })
@@ -131,6 +133,7 @@ export default function CurriculumManagement() {
                 title: '',
                 videoUrl: '',
                 summary: '',
+                summaryImage: '',
                 learningObjectives: '',
                 quiz: []
             })
@@ -146,6 +149,7 @@ export default function CurriculumManagement() {
             title: moduleFormData.title,
             videoUrl: moduleFormData.videoUrl,
             summary: moduleFormData.summary,
+            summaryImage: moduleFormData.summaryImage,
             learningObjectives: moduleFormData.learningObjectives.split('\n').filter(l => l.trim()),
             quiz: moduleFormData.quiz
         }
@@ -392,6 +396,18 @@ export default function CurriculumManagement() {
                                         className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:ring-purple-500 focus:border-purple-500 sm:text-sm"
                                     />
                                 </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 flex items-center">
+                                        <PhotoIcon className="w-4 h-4 mr-1 text-gray-400" /> Summary Image URL (Optional)
+                                    </label>
+                                    <input
+                                        type="text"
+                                        value={moduleFormData.summaryImage}
+                                        onChange={(e) => setModuleFormData({ ...moduleFormData, summaryImage: e.target.value })}
+                                        placeholder="https://example.com/image.jpg"
+                                        className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:ring-purple-500 focus:border-purple-500 sm:text-sm"
+                                    />
+                                </div>
 
                                 {/* Quiz Builder */}
                                 <div className="border border-purple-100 rounded-lg overflow-hidden">
@@ -401,7 +417,7 @@ export default function CurriculumManagement() {
                                         </h4>
                                         <button
                                             onClick={() => {
-                                                const newQ = { id: Date.now(), question: '', options: ['', '', '', ''], correctAnswer: 0 };
+                                                const newQ = { id: Date.now(), question: '', image: '', options: ['', '', '', ''], correctAnswer: 0, explanation: '' };
                                                 setModuleFormData({ ...moduleFormData, quiz: [...moduleFormData.quiz, newQ] });
                                             }}
                                             className="text-xs font-medium text-purple-600 hover:text-purple-800"
@@ -427,20 +443,35 @@ export default function CurriculumManagement() {
                                                             <TrashIcon className="w-4 h-4" />
                                                         </button>
                                                     </div>
-                                                    <input
-                                                        type="text"
-                                                        value={q.question}
-                                                        onChange={(e) => {
-                                                            const newQuiz = [...moduleFormData.quiz];
-                                                            newQuiz[qIdx].question = e.target.value;
-                                                            setModuleFormData({ ...moduleFormData, quiz: newQuiz });
-                                                        }}
-                                                        placeholder="Enter question text..."
-                                                        className="block w-full border border-gray-200 rounded-md py-2 px-3 text-sm focus:ring-purple-500 shadow-sm"
-                                                    />
-                                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                                    <div>
+                                                        <input
+                                                            type="text"
+                                                            value={q.question}
+                                                            onChange={(e) => {
+                                                                const newQuiz = [...moduleFormData.quiz];
+                                                                newQuiz[qIdx].question = e.target.value;
+                                                                setModuleFormData({ ...moduleFormData, quiz: newQuiz });
+                                                            }}
+                                                            placeholder="Enter question text..."
+                                                            className="block w-full border border-gray-200 rounded-md py-2 px-3 text-sm focus:ring-purple-500 shadow-sm mb-2"
+                                                        />
+                                                        <input
+                                                            type="text"
+                                                            value={q.image || ''}
+                                                            onChange={(e) => {
+                                                                const newQuiz = [...moduleFormData.quiz];
+                                                                newQuiz[qIdx].image = e.target.value;
+                                                                setModuleFormData({ ...moduleFormData, quiz: newQuiz });
+                                                            }}
+                                                            placeholder="Question Image URL (Optional)"
+                                                            className="block w-full border border-gray-200 rounded-md py-1.5 px-3 text-xs focus:ring-purple-500 shadow-sm text-gray-600"
+                                                        />
+                                                    </div>
+
+                                                    <div className="grid grid-cols-1 gap-3">
+                                                        <p className="text-xs font-medium text-gray-500">Options (Select the correct answer)</p>
                                                         {q.options.map((opt, oIdx) => (
-                                                            <div key={oIdx} className="flex items-center gap-2 bg-white p-2 rounded border border-gray-100">
+                                                            <div key={oIdx} className={`flex items-start gap-2 p-3 rounded-lg border transition-all ${q.correctAnswer === oIdx ? 'bg-green-50 border-green-200 ring-1 ring-green-200' : 'bg-white border-gray-200'}`}>
                                                                 <input
                                                                     type="radio"
                                                                     name={`correct-${q.id}`}
@@ -450,21 +481,37 @@ export default function CurriculumManagement() {
                                                                         newQuiz[qIdx].correctAnswer = oIdx;
                                                                         setModuleFormData({ ...moduleFormData, quiz: newQuiz });
                                                                     }}
-                                                                    className="h-4 w-4 text-purple-600 focus:ring-purple-500"
+                                                                    className="mt-1.5 h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300"
+                                                                    title="Mark as correct answer"
                                                                 />
-                                                                <input
-                                                                    type="text"
+                                                                <textarea
                                                                     value={opt}
                                                                     onChange={(e) => {
                                                                         const newQuiz = [...moduleFormData.quiz];
                                                                         newQuiz[qIdx].options[oIdx] = e.target.value;
                                                                         setModuleFormData({ ...moduleFormData, quiz: newQuiz });
                                                                     }}
+                                                                    rows="2"
                                                                     placeholder={`Option ${oIdx + 1}`}
-                                                                    className="flex-1 border-none focus:ring-0 p-0 text-xs text-gray-600"
+                                                                    className="flex-1 w-full border-gray-200 rounded-md text-sm focus:ring-purple-500 focus:border-purple-500 resize-y min-h-[60px]"
                                                                 />
                                                             </div>
                                                         ))}
+                                                    </div>
+
+                                                    <div>
+                                                        <label className="block text-xs font-medium text-gray-500 mb-1">Explanation (shown after wrong answer)</label>
+                                                        <textarea
+                                                            value={q.explanation || ''}
+                                                            onChange={(e) => {
+                                                                const newQuiz = [...moduleFormData.quiz];
+                                                                newQuiz[qIdx].explanation = e.target.value;
+                                                                setModuleFormData({ ...moduleFormData, quiz: newQuiz });
+                                                            }}
+                                                            rows="2"
+                                                            placeholder="Explain why the correct answer is right..."
+                                                            className="block w-full border border-gray-200 rounded-md py-2 px-3 text-sm focus:ring-purple-500 shadow-sm"
+                                                        />
                                                     </div>
                                                 </div>
                                             ))
