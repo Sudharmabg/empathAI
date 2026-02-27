@@ -17,7 +17,8 @@ import {
   PaperAirplaneIcon,
   ArrowRightOnRectangleIcon,
   AcademicCapIcon,
-  CheckCircleIcon
+  CheckCircleIcon,
+  XMarkIcon
 } from '@heroicons/react/24/outline'
 import Assessment from './Assessment'
 import Chatbot from './Chatbot'
@@ -32,6 +33,7 @@ export default function Dashboard({ user, onLogout }) {
   const [activeTab, setActiveTab] = useState('overview')
   const [activeHeaderModal, setActiveHeaderModal] = useState(null)
   const [chatMessage, setChatMessage] = useState('')
+  const [searchQuery, setSearchQuery] = useState('')
   const [showDailyCheckin, setShowDailyCheckin] = useState(true)
   const [selectedSleep, setSelectedSleep] = useState(null)
   const [selectedMood, setSelectedMood] = useState(null)
@@ -83,6 +85,65 @@ export default function Dashboard({ user, onLogout }) {
     { id: 'activities', name: 'Activities', icon: PuzzlePieceIcon }
   ]
 
+  const performSearch = () => {
+    const query = searchQuery.toLowerCase().trim()
+    if (!query) return
+
+    // Mapping keywords to tab IDs
+    const searchMap = {
+      'overview': 'overview',
+      'home': 'overview',
+      'chat': 'chatbuddy',
+      'buddy': 'chatbuddy',
+      'bot': 'chatbuddy',
+      'talk': 'chatbuddy',
+      'curriculum': 'curriculum',
+      'study': 'curriculum',
+      'learn': 'curriculum',
+      'lesson': 'curriculum',
+      'math': 'curriculum',
+      'science': 'curriculum',
+      'english': 'curriculum',
+      'history': 'curriculum',
+      'schedule': 'schedule',
+      'calendar': 'schedule',
+      'today': 'schedule',
+      'task': 'schedule',
+      'feel': 'questionnaire',
+      'explorer': 'questionnaire',
+      'mood': 'questionnaire',
+      'check': 'questionnaire',
+      'activity': 'activities',
+      'activities': 'activities',
+      'game': 'activities',
+      'play': 'activities'
+    }
+
+    // Try to find a match in the mapping
+    const matchedKey = Object.keys(searchMap).find(key => query.includes(key))
+    if (matchedKey) {
+      setActiveTab(searchMap[matchedKey])
+      setSearchQuery('')
+      return
+    }
+
+    // Fallback: check sidebar items names directly
+    const match = sidebarItems.find(item =>
+      item.name.toLowerCase().includes(query) ||
+      item.id.toLowerCase().includes(query)
+    )
+    if (match) {
+      setActiveTab(match.id)
+      setSearchQuery('')
+    }
+  }
+
+  const handleSearchKeyPress = (e) => {
+    if (e.key === 'Enter') {
+      performSearch()
+    }
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 font-lora">
       {/* Header */}
@@ -100,13 +161,27 @@ export default function Dashboard({ user, onLogout }) {
 
           {/* Search Bar */}
           <div className="flex-1 max-w-2xl mx-8">
-            <div className="relative">
-              <MagnifyingGlassIcon className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+            <div className="relative group">
+              <MagnifyingGlassIcon
+                onClick={performSearch}
+                className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 group-focus-within:text-purple-600 cursor-pointer transition-colors"
+              />
               <input
                 type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                onKeyDown={handleSearchKeyPress}
                 placeholder="Search sessions, lessons, or activities..."
-                className="w-full pl-12 pr-4 py-2.5 bg-gray-100 border-transparent rounded-2xl focus:bg-white focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none text-sm transition-all"
+                className="w-full pl-12 pr-12 py-2.5 bg-gray-100 border-transparent rounded-2xl focus:bg-white focus:ring-4 focus:ring-purple-100 focus:border-purple-600 outline-none text-sm transition-all shadow-sm"
               />
+              {searchQuery && (
+                <button
+                  onClick={() => setSearchQuery('')}
+                  className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-purple-600 transition-colors p-1"
+                >
+                  <XMarkIcon className="w-5 h-5" />
+                </button>
+              )}
             </div>
           </div>
 
@@ -586,7 +661,7 @@ function Overview({ user, setActiveTab }) {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
           {achievements.map((ach, i) => (
             <div key={i} className="group bg-white p-5 rounded-3xl border-2 border-purple-200 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
-              <div className={`w-12 h-12 ${ach.color} rounded-xl flex items-center justify-center text-xl mb-4 group-hover:scale-110 transition-transform`}>
+              <div className={`w-12 h-12 ${ach.color} rounded-xl flex items-center justify-center text-xl mb-4 mx-auto group-hover:scale-110 transition-transform`}>
                 {ach.icon}
               </div>
               <h3 className="text-base font-black text-dark-navy mb-1">{ach.title}</h3>
@@ -608,35 +683,40 @@ function Overview({ user, setActiveTab }) {
             Ongoing Learning
             <span className="w-6 h-1 bg-purple-200 rounded-full"></span>
           </h2>
-          <button className="text-xs font-bold text-purple-600 hover:underline">View all curriculum</button>
+          <button
+            onClick={() => setActiveTab('curriculum')}
+            className="text-xs font-bold text-purple-600 hover:underline"
+          >
+            View all curriculum
+          </button>
         </div>
-        <div className="grid md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
           {subjects.slice(0, 2).map((subject, index) => (
-            <div key={index} className="group bg-white border-2 border-purple-200 rounded-3xl p-6 hover:shadow-xl transition-all duration-500 relative overflow-hidden">
-              <div className="absolute top-0 right-0 w-24 h-24 bg-purple-50 rounded-bl-[80px] -z-0"></div>
-              <div className="flex items-start justify-between mb-6 relative z-10">
-                <div className="flex items-center gap-3">
-                  <div className={`w-14 h-14 bg-${subject.color}-50 rounded-xl flex items-center justify-center group-hover:rotate-3 transition-transform`}>
-                    <subject.icon className={`w-7 h-7 text-${subject.color}-500`} />
+            <div key={index} className={`group bg-white p-5 rounded-3xl border-2 border-purple-200 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 relative overflow-hidden flex flex-col justify-between ${index === 0 ? 'lg:col-start-2' : ''}`}>
+              <div className="absolute top-0 right-0 w-16 h-16 bg-purple-50 rounded-bl-[40px] -z-0"></div>
+              <div className="flex items-center justify-between mb-4 relative z-10">
+                <div className="flex items-center gap-2">
+                  <div className={`w-10 h-10 bg-${subject.color}-50 rounded-xl flex items-center justify-center group-hover:rotate-3 transition-transform shadow-sm`}>
+                    <subject.icon className={`w-5 h-5 text-${subject.color}-500`} />
                   </div>
-                  <div>
-                    <h3 className="text-xl font-black text-dark-navy">{subject.name}</h3>
-                    <p className="text-gray-500 font-bold uppercase text-[9px] tracking-widest">CHAPTER: {subject.chapter}</p>
+                  <div className="text-left">
+                    <h3 className="text-base font-black text-dark-navy leading-none mb-1">{subject.name}</h3>
+                    <p className="text-gray-400 font-bold uppercase text-[7px] tracking-widest">Chapter: {subject.chapter}</p>
                   </div>
                 </div>
                 <div className="text-right">
-                  <p className="text-xl font-black text-green-600">{subject.progress}%</p>
-                  <p className="text-[9px] font-bold text-gray-400 uppercase">Progress</p>
+                  <p className="text-base font-black text-green-600 leading-none">{subject.progress}%</p>
+                  <p className="text-[7px] font-bold text-gray-400 uppercase tracking-tighter">Progress</p>
                 </div>
               </div>
 
-              <div className="mb-6 relative z-10">
-                <div className="bg-purple-100 rounded-full h-2.5 p-0.5">
-                  <div className={`bg-green-500 h-full rounded-full transition-all duration-1000`} style={{ width: `${subject.progress}%` }}></div>
+              <div className="mb-4 relative z-10 px-1">
+                <div className="bg-purple-50 rounded-full h-1 overflow-hidden">
+                  <div className={`bg-green-500 h-full rounded-full transition-all duration-1000 shadow-[0_0_10px_rgba(34,197,94,0.3)]`} style={{ width: `${subject.progress}%` }}></div>
                 </div>
               </div>
 
-              <button className="w-full bg-black text-white font-bold rounded-xl py-3 hover:bg-gray-800 transition-all relative z-10 text-sm">
+              <button className="w-fit mx-auto px-6 bg-black text-white font-black rounded-xl py-2.5 hover:bg-gray-800 transition-all relative z-10 text-[10px] uppercase tracking-widest shadow-md hover:shadow-lg active:scale-95">
                 Continue Learning
               </button>
             </div>
@@ -656,7 +736,10 @@ function Overview({ user, setActiveTab }) {
               <h3 className="text-xl font-black text-dark-navy mb-1 italic">Feeling Overwhelmed?</h3>
               <p className="text-gray-600 font-medium text-base leading-relaxed">Take a quick 5-minute mindfulness break to recalibrate your emotions.</p>
             </div>
-            <button className="bg-black text-white font-bold px-8 py-3 rounded-xl hover:bg-gray-800 transition-all shadow-lg shadow-black/10 whitespace-nowrap text-sm">
+            <button
+              onClick={() => setActiveTab('activities')}
+              className="bg-black text-white font-bold px-8 py-3 rounded-xl hover:bg-gray-800 transition-all shadow-lg shadow-black/10 whitespace-nowrap text-sm"
+            >
               Start Session
             </button>
           </div>
@@ -668,6 +751,7 @@ function Overview({ user, setActiveTab }) {
 
 function RightSidebar() {
   const [completedTasks, setCompletedTasks] = useState({})
+  const [selectedWellnessEmoji, setSelectedWellnessEmoji] = useState(null)
 
   const handleTaskToggle = (taskId) => {
     setCompletedTasks(prev => ({
@@ -676,17 +760,36 @@ function RightSidebar() {
     }))
   }
 
+  const wellnessEmojis = [
+    { emoji: '😊', label: 'Happy' },
+    { emoji: '😐', label: 'Neutral' },
+    { emoji: '😔', label: 'Sad' }
+  ]
+
   return (
     <div className="font-lora">
       {/* Emotional Wellness */}
       <div className="mb-8">
         <h3 className="font-semibold text-gray-900 mb-4">💝 Emotional Wellness</h3>
-        <div className="bg-white border-2 border-purple-200 rounded-xl p-4">
-          <p className="text-sm text-gray-700 mb-3">How are you feeling today?</p>
-          <div className="flex justify-center space-x-4">
-            <span className="text-3xl cursor-pointer hover:scale-110 transition-transform">😊</span>
-            <span className="text-3xl cursor-pointer hover:scale-110 transition-transform">😐</span>
-            <span className="text-3xl cursor-pointer hover:scale-110 transition-transform">😔</span>
+        <div className="bg-white border-2 border-purple-200 rounded-xl p-4 min-h-[120px] flex flex-col justify-center">
+          <p className="text-sm text-gray-700 mb-4 text-center">
+            {selectedWellnessEmoji ? "Glad you shared how you're feeling!" : "How are you feeling today?"}
+          </p>
+          <div className="flex justify-center space-x-6">
+            {wellnessEmojis.map((item, index) => (
+              (!selectedWellnessEmoji || selectedWellnessEmoji === item.emoji) && (
+                <span
+                  key={index}
+                  onClick={() => setSelectedWellnessEmoji(item.emoji)}
+                  className={`text-4xl cursor-pointer transition-all duration-500 transform ${selectedWellnessEmoji === item.emoji
+                    ? 'scale-125 hover:scale-125'
+                    : 'hover:scale-110 grayscale-[0.5] hover:grayscale-0'
+                    }`}
+                >
+                  {item.emoji}
+                </span>
+              )
+            ))}
           </div>
         </div>
       </div>
